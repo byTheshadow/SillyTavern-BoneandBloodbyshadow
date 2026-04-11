@@ -678,5 +678,385 @@ function renderParallel() {
         <div class="bb-parallel-origin">📍 原文: "${escapeHtml(p.origin)}..."</div>
         <div class="bb-parallel-text">🦋 ${escapeHtml(p.content)}</div>
       </div>
-    `
+    // ============================================
+// （接上文 renderParallel 函数截断处）
+// ============================================
+    );
+    container.append(card);
+  });
+}
+
+// ============================================
+// 功能实现：命运梭哈
+// ============================================
+
+async function rollFate() {
+  const btn = $('#bb-roll-fate');
+  const resultDiv = $('.bb-fate-result');
+  
+  btn.addClass('bb-loading').text('🎲 命运旋转中...');
+  resultDiv.text('正在召唤命运...');
+  
+  const context = getContext();
+  const charName = context.name2 || '角色';
+  const userName = context.name1 || '用户';
+  const recentChat = getRecentChat(10);
+  const chatSnippet = recentChat
+    .map(m => `${m.name}: ${m.content}`)
+    .join('\n')
+    .substring(0, 1500);
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `你是一位TRPG的命运骰子。基于当前剧情场景，生成一个突发事件。
+要求：
+- 事件必须具有戏剧性和冲击力
+- 可以是危险的、搞笑的、浪漫的或诡异的
+- 用一两句话描述，不超过60字
+- 不要使用markdown格式
+示例："一颗流星突然坠落在附近的山丘上，大地震颤，远处传来不明生物的嚎叫。"
+示例："${charName}的口袋里突然掉出一封不属于自己的情书，字迹居然是${userName}的。"`
+    },
+    {
+      role: 'user',
+      content: `当前场景：\n${chatSnippet}\n\n请投掷命运骰子，生成一个突发事件：`
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  btn.removeClass('bb-loading').text('🎲 摇骰子');
+  
+  if (result) {
+    pluginData.chaos_event = result;
+    saveChatData();
+    resultDiv.html(`<strong>🔥 命运已定：</strong><br>${escapeHtml(result)}`);
+    console.log(`[${EXTENSION_NAME}] 🃏 命运事件已生成: ${result}`);
+  } else {
+    resultDiv.text('❌ 命运沉默了...（API调用失败，请检查设置）');
+  }
+}
+
+// ============================================
+// 功能实现：氛围心电图
+// ============================================
+
+async function generateVibe() {
+  const recentChat = getRecentChat(10);
+  if (recentChat.length < 3) return;
+  
+  const chatSnippet = recentChat
+    .map(m => `${m.name}: ${m.content}`)
+    .join('\n')
+    .substring(0, 1500);
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `分析以下对话的情绪基调，用2-4个关键词概括（如：暧昧而紧张、轻松搞笑、沉重悲伤、温馨日常）。
+只输出关键词描述，不要其他内容。不超过20字。`
+    },
+    {
+      role: 'user',
+      content: chatSnippet
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  if (result) {
+    pluginData.vibe = result;
+    saveChatData();
+  }
+}
+
+// ============================================
+// NPC 状态追踪
+// ============================================
+
+async function generateNPCStatus(npcName) {
+  const context = getContext();
+  const charName = context.name2 || '角色';
+  const userName = context.name1 || '用户';
+  const recentChat = getRecentChat(20);
+  const chatSnippet = recentChat
+    .map(m => `${m.name}: ${m.content}`)
+    .join('\n')
+    .substring(0, 2000);
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `${charName}和${userName}正在进行剧情。请用一句话描述此时不在场的NPC "${npcName}" 正在另一个地方干什么？
+要求：符合人物性格和当前世界观，有趣且具体。不超过50字。`
+    },
+    {
+      role: 'user',
+      content: `当前场景对话：\n${chatSnippet}\n\nNPC "${npcName}" 此刻在做什么？`
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  if (result) {
+    pluginData.npc_status[npcName] = result;
+    saveChatData();
+    renderIntel();
+  }
+}
+
+// ============================================
+// 消息计数器（触发自动生成）
+// ============================================
+
+function incrementMessageCounter() {
+  const settings = getSettings();
+  settings.message_counter = (settings.message_counter || 0) + 1;
+  
+  // 达到阈值时自动触发
+  if (settings.message_counter >= settings.diary_trigger_count) {
+    console.log(`[${EXTENSION_NAME}] 📊 消息计数达到 ${settings.message_counter}，触发自动生成...`);
+    settings.message_counter = 0;
+    saveSettings();
+    
+    // 静默触发后台生成（不阻塞主流程）
+    autoGenerate();
+  } else {
+    saveSettings();
+  }
+}
+
+function resetMessageCounter() {
+  const settings = getSettings();
+  settings.message_counter = 0;
+  saveSettings();
+}
+
+async function autoGenerate() {
+  const settings = getSettings();
+  if (!settings.api_endpoint || !settings.api_key) return;
+  
+  console.log(`[${EXTENSION_NAME}] ⚙️ 开始自动生成...`);
+  
+  // 并行生成日记、总结、环境、氛围
+  try {
+    await Promise.allSettled([
+      generateDiary(),
+      generateSummary(),
+      generateWeather(),
+      generateVibe(),
+    ]);
+    console.log(`[${EXTENSION_NAME}] ✅ 自动生成完成`);
+  } catch (error) {
+    console.error(`[${EXTENSION_NAME}] ❌ 自动生成出错:`, error);
+  }
+}
+
+// ============================================
+// 宏注册
+// ============================================
+
+function registerMacros() {
+  // {{bb_diary}} - 最新日记
+  registerMacroLike(
+    /\{\{bb_diary\}\}/gi,
+    () => {
+      if (pluginData.diary_blood.length > 0) {
+        return pluginData.diary_blood[pluginData.diary_blood.length - 1].content;
+      }
+      return '';
+    }
+  );
+  
+  // {{bb_summary}} - 最新阿卡夏总结
+  registerMacroLike(
+    /\{\{bb_summary\}\}/gi,
+    () => {
+      if (pluginData.summaries.length > 0) {
+        return pluginData.summaries[pluginData.summaries.length - 1].content;
+      }
+      return '';
+    }
+  );
+  
+  // {{bb_weather}} - 当前环境
+  registerMacroLike(
+    /\{\{bb_weather\}\}/gi,
+    () => pluginData.weather || '未知环境'
+  );
+  
+  // {{bb_chaos_event}} - 突发事件
+  registerMacroLike(
+    /\{\{bb_chaos_event\}\}/gi,
+    () => {
+      const event = pluginData.chaos_event;
+      // 读取后清空，一次性事件
+      pluginData.chaos_event = '';
+      saveChatData();
+      return event || '';
+    }
+  );
+  
+  // {{bb_vibe}} - 氛围基调
+  registerMacroLike(
+    /\{\{bb_vibe\}\}/gi,
+    () => pluginData.vibe || '平静'
+  );
+  
+  // {{bb_npc_status}} - NPC动态（返回全部NPC状态）
+  registerMacroLike(
+    /\{\{bb_npc_status\}\}/gi,
+    () => {
+      const entries = Object.entries(pluginData.npc_status);
+      if (entries.length === 0) return '';
+      return entries.map(([name, status]) => `${name}: ${status}`).join('\n');
+    }
+  );
+  
+  console.log(`[${EXTENSION_NAME}] 📡 所有宏已注册`);
+}
+
+// ============================================
+// 数据持久化（使用酒馆扩展存储）
+// ============================================
+
+function getChatDataKey() {
+  const context = getContext();
+  if (!context.chatId) return null;
+  return `bb_data_${context.chatId}`;
+}
+
+function saveChatData() {
+  const key = getChatDataKey();
+  if (!key) return;
+  
+  try {
+    localStorage.setItem(key, JSON.stringify(pluginData));
+  } catch (error) {
+    console.error(`[${EXTENSION_NAME}] 存储失败:`, error);
+  }
+}
+
+function loadChatData() {
+  const key = getChatDataKey();
+  if (!key) {
+    resetPluginData();
+    return;
+  }
+  
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      pluginData = JSON.parse(stored);
+      // 确保所有字段存在
+      pluginData.records_bone = pluginData.records_bone || [];
+      pluginData.diary_blood = pluginData.diary_blood || [];
+      pluginData.summaries = pluginData.summaries || [];
+      pluginData.weather = pluginData.weather || '';
+      pluginData.npc_status = pluginData.npc_status || {};
+      pluginData.chaos_event = pluginData.chaos_event || '';
+      pluginData.vibe = pluginData.vibe || '';
+      pluginData.parallel_universes = pluginData.parallel_universes || [];
+    } else {
+      resetPluginData();
+    }
+  } catch (error) {
+    console.error(`[${EXTENSION_NAME}] 读取失败:`, error);
+    resetPluginData();
+  }
+  
+  // 刷新所有UI
+  renderScrapbook();
+  renderDiary();
+  renderIntel();
+  renderParallel();
+}
+
+function resetPluginData() {
+  pluginData = {
+    records_bone: [],
+    diary_blood: [],
+    summaries: [],
+    weather: '',
+    npc_status: {},
+    chaos_event: '',
+    vibe: '',
+    parallel_universes: [],
+  };
+}
+
+// ============================================
+// 导出功能
+// ============================================
+
+function exportAsMarkdown() {
+  if (pluginData.records_bone.length === 0) {
+    alert('没有可导出的语录！');
+    return;
+  }
+  
+  const context = getContext();
+  const charName = context.name2 || '角色';
+  
+  let md = `# 🦴 骨与血 — ${charName} 语录集\n\n`;
+  md += `> 导出时间: ${new Date().toLocaleString('zh-CN')}\n\n---\n\n`;
+  
+  pluginData.records_bone.forEach((record, index) => {
+    md += `### ${index + 1}. ${record.who}\n\n`;
+    md += `> ${record.text}\n\n`;
+    if (record.context) {
+      md += `*上文: ${record.context.substring(0, 100)}...*\n\n`;
+    }
+    md += `📅 ${record.date} | #${record.floor}\n\n---\n\n`;
+  });
+  
+  downloadFile(`bone_and_blood_${charName}.md`, md, 'text/markdown');
+}
+
+function exportAsJSON() {
+  if (pluginData.records_bone.length === 0) {
+    alert('没有可导出的数据！');
+    return;
+  }
+  
+  const exportData = {
+    export_time: new Date().toISOString(),
+    records: pluginData.records_bone,
+    diaries: pluginData.diary_blood,
+    summaries: pluginData.summaries,
+  };
+  
+  const context = getContext();
+  const charName = context.name2 || '角色';
+  downloadFile(
+    `bone_and_blood_${charName}.json`,
+    JSON.stringify(exportData, null, 2),
+    'application/json'
+  );
+}
+
+function downloadFile(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ============================================
+// 工具函数
+// ============================================
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 
