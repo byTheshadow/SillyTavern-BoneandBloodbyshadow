@@ -3361,7 +3361,7 @@ jQuery(async () => {
   $('#bb-ooc-win').addClass('bb-hidden');
   $('#bb-bf-win').addClass('bb-hidden');
 
-  console.log('[BB] 骨与血 v6.1 initialized ✓');
+  console.log('[BB] 骨与血 v7.1 initialized ✓');
 });
 
 // ═══════════════ 区块 O结束 ═══════════════
