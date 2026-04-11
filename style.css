@@ -1,5 +1,5 @@
 /* ============================================
-   🦴 骨与血 (Bone & Blood) v0.4.0 样式表
+   🦴 骨与血 (Bone & Blood) v0.5.0 样式表
    By SHADOW <安息之影> © 2026
    ============================================ */
 
@@ -1719,6 +1719,42 @@
 .bb-custom-theme-border {
   border-color: var(--bb-primary) !important;
 }
+/* ============================================
+   v0.5.0 响应式增强
+   ============================================ */
+
+/* 弹窗样式 */
+.bb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bb-fade-in 0.2s ease;
+}
+
+.bb-modal-content {
+  background: var(--bb-bg-main);
+  border: 3px solid var(--bb-primary);
+  border-radius: var(--bb-radius-lg);
+  padding: 24px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: var(--bb-shadow-lg);
+  animation: bb-panel-show 0.3s ease;
+}
+
+@media (max-width: 480px) {
+  .bb-modal-content {
+    padding: 20px;
+    max-width: 95%;
+  }
+  
+  .bb-modal-content h3 {
+    font-size
+
 
 /* ============================================
    结束标记
