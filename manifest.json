@@ -1,12 +1,12 @@
 {
-    "name": "BoneandBlood(骨与血)",
-    "display_name": "SillyTavern-BoneandBlood",
-    "version": "0.1.0",
-    "author": "shadow",
-    "description": "解决AI金鱼记忆，与预设联动强化记忆，让char更加生动，同时增加记录喜欢的rp内容以及小剧场，世界观新闻等趣味功能",
-    "publish_date": "2024-05-23T00:00:00Z",
-    "script": "index.js",
-    "style": "style.css",
-    "requirements": [],
-    "tags": ["memory", "chat", "utility"]
+  "display_name": "骨与血 (Bone & Blood)",
+  "loading_order": 10,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Shadow",
+  "version": "0.1.0",
+  "homePage": "https://github.com/loud23for-ship-it/SillyTavern-BoneandBloodbyshadow",
+  "auto_update": true
 }
