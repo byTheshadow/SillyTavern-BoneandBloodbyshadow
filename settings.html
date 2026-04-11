@@ -1,7 +1,6 @@
 <!--============================================================骨与血 (Bone & Blood) v0.7.0 — settings.html
-     扩展设置面板 — 由 index.js 通过 fetch 注入到 #extensions_settings2
-     2026@SHADOW<安息之影>
-     ============================================================ -->
+    扩展设置面板 — 由index.js 通过 fetch 注入到 #extensions_settings22026@SHADOW<安息之影>
+    ============================================================ -->
 
 <div id="bb-settings-panel" class="bb-settings-root">
   <div class="inline-drawer">
@@ -9,11 +8,9 @@
       <b>🦴 骨与血 Bone & Blood</b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
-    <div class="inline-drawer-content">
-
-      <!--── 基础开关 ── -->
+    <div class="inline-drawer-content" style="display:flex; flex-direction:column; gap:2px;"><!--── 基础开关 ──-->
       <div class="bb-settings-section">
-        <h4>⚙️ 基础设置</h4>
+        <h4 class="bb-section-title">⚙️ 基础设置</h4>
         <label class="checkbox_label">
           <input type="checkbox" id="bb-enabled" />
           <span>启用插件</span>
@@ -23,14 +20,13 @@
           <span>自动生成日记</span>
         </label>
         <div class="bb-row">
-          <label style="white-space:nowrap;margin:0;">触发条数：</label>
+          <label class="bb-inline-label">触发条数：</label>
           <input type="number" id="bb-diary-trigger" class="text_pole" min="1" max="100" value="10" style="width:80px;" />
-        </div>
-      </div>
+        </div></div>
 
-      <!-- ── 副API配置 ── -->
+      <!--── 副API配置 ──-->
       <div class="bb-settings-section">
-        <h4>🔗 副API配置</h4>
+        <h4 class="bb-section-title">🔗 副API配置</h4>
         <div class="bb-field">
           <label class="bb-field-label">API Base URL</label>
           <input type="text" id="bb-api-base" class="text_pole" placeholder="https://api.example.com/v1" />
@@ -38,36 +34,35 @@
         <div class="bb-field">
           <label class="bb-field-label">API Key</label>
           <div class="bb-row">
-            <input type="password" id="bb-api-key" class="text_pole" placeholder="sk-..." style="flex:1;" />
-            <button id="bb-toggle-key-vis" class="menu_button" title="显示/隐藏">👁</button>
+            <input type="password" id="bb-api-key" class="text_pole" placeholder="sk-..." style="flex:1;min-width:0;" />
+            <button id="bb-toggle-key-vis" class="menu_button bb-icon-btn" type="button" title="显示/隐藏">👁</button>
           </div>
         </div>
         <div class="bb-field">
           <label class="bb-field-label">模型名称</label>
           <input type="text" id="bb-api-model" class="text_pole" placeholder="gpt-4o-mini" />
+        </div><div class="bb-row">
+          <button id="bb-test-api" class="menu_button" type="button">🧪 测试连接</button>
         </div>
-        <button id="bb-test-api" class="menu_button">🧪 测试连接</button>
       </div>
 
-      <!-- ── 通用提示词预设 ── -->
+      <!--── 通用提示词预设 ──-->
       <div class="bb-settings-section">
-        <h4>📝 提示词预设</h4>
+        <h4 class="bb-section-title">📝 提示词预设</h4>
         <div class="bb-field">
           <label class="bb-field-label">当前预设</label>
           <div class="bb-row">
-            <select id="bb-preset-select" class="text_pole" style="flex:1;"></select>
-            <button id="bb-preset-edit" class="menu_button" title="编辑">✏️</button>
-            <button id="bb-preset-delete" class="menu_button" title="删除">🗑️</button>
+            <select id="bb-preset-select" class="text_pole" style="flex:1;min-width:0;"></select>
+            <button id="bb-preset-edit" class="menu_button bb-icon-btn" type="button" title="编辑">✏️</button>
+            <button id="bb-preset-delete" class="menu_button bb-icon-btn" type="button" title="删除">🗑️</button>
           </div>
         </div>
         <div class="bb-btn-group">
-          <button id="bb-preset-new" class="menu_button">➕ 新建</button>
-          <button id="bb-preset-import" class="menu_button">📥 导入</button>
-          <button id="bb-preset-export" class="menu_button">📤 导出</button>
-        </div>
-
-        <!--预设编辑器（展开式） -->
-        <div id="bb-preset-editor" class="bb-preset-editor" style="display:none;">
+          <button id="bb-preset-new" class="menu_button" type="button">➕ 新建</button>
+          <button id="bb-preset-import" class="menu_button" type="button">📥 导入</button>
+          <button id="bb-preset-export" class="menu_button" type="button">📤 导出</button>
+        </div><!--预设编辑器（展开式）-->
+        <div id="bb-preset-editor" class="bb-preset-editor bb-hidden">
           <h5 id="bb-preset-editor-title">编辑预设</h5>
           <div class="bb-field">
             <label class="bb-field-label">预设名称</label>
@@ -83,7 +78,7 @@
           </div>
 
           <hr class="bb-divider" />
-          <p style="font-size:11px;color:var(--bb-text-muted);margin:00 8px;">以下为各功能的专用提示词（留空则使用内置默认）：</p>
+          <p class="bb-hint-text">以下为各功能的专用提示词（留空则使用内置默认）：</p>
 
           <div class="bb-field">
             <label class="bb-field-label">📖 日记</label>
@@ -123,32 +118,32 @@
           </div>
 
           <div class="bb-btn-group" style="margin-top:10px;">
-            <button id="bb-pe-save" class="menu_button bb-btn-primary">💾 保存</button>
-            <button id="bb-pe-cancel" class="menu_button">取消</button>
+            <button id="bb-pe-save" class="menu_button bb-btn-primary" type="button">💾 保存</button>
+            <button id="bb-pe-cancel" class="menu_button" type="button">取消</button>
           </div>
         </div>
       </div>
 
-      <!-- ── OOC独立预设 ── -->
+      <!--── OOC独立预设 ──-->
       <div class="bb-settings-section">
-        <h4>⭐ Burning Star Chat 预设</h4>
-        <p style="font-size:11px;color:var(--bb-text-muted);margin:0 0 8px;">破墙聊天室使用独立的预设，与角色扮演提示词分离。</p>
+        <h4 class="bb-section-title">⭐ Burning Star Chat预设</h4>
+        <p class="bb-hint-text">破墙聊天室使用独立的预设，与角色扮演提示词分离。</p>
         <div class="bb-field">
           <label class="bb-field-label">当前OOC预设</label>
           <div class="bb-row">
-            <select id="bb-ooc-preset-select" class="text_pole" style="flex:1;"></select>
-            <button id="bb-ooc-preset-edit" class="menu_button" title="编辑">✏️</button>
-            <button id="bb-ooc-preset-delete" class="menu_button" title="删除">🗑️</button>
+            <select id="bb-ooc-preset-select" class="text_pole" style="flex:1;min-width:0;"></select>
+            <button id="bb-ooc-preset-edit" class="menu_button bb-icon-btn" type="button" title="编辑">✏️</button>
+            <button id="bb-ooc-preset-delete" class="menu_button bb-icon-btn" type="button" title="删除">🗑️</button>
           </div>
         </div>
         <div class="bb-btn-group">
-          <button id="bb-ooc-preset-new" class="menu_button">➕ 新建</button>
-          <button id="bb-ooc-preset-import" class="menu_button">📥 导入</button>
-          <button id="bb-ooc-preset-export" class="menu_button">📤 导出</button>
+          <button id="bb-ooc-preset-new" class="menu_button" type="button">➕ 新建</button>
+          <button id="bb-ooc-preset-import" class="menu_button" type="button">📥 导入</button>
+          <button id="bb-ooc-preset-export" class="menu_button" type="button">📤 导出</button>
         </div>
 
-        <!-- OOC预设编辑器-->
-        <div id="bb-ooc-preset-editor" class="bb-preset-editor" style="display:none;">
+        <!--OOC预设编辑器-->
+        <div id="bb-ooc-preset-editor" class="bb-preset-editor bb-hidden">
           <h5 id="bb-ooc-pe-title">编辑OOC预设</h5>
           <div class="bb-field">
             <label class="bb-field-label">预设名称</label>
@@ -158,24 +153,26 @@
             <label class="bb-field-label">系统提示词</label>
             <textarea id="bb-ooc-pe-system" class="text_pole" rows="4" placeholder="你是角色的'真实人格'，现在脱离了剧本设定..."></textarea>
           </div>
-          <div class="bb-field">
-            <label class="bb-field-label">温度 (Temperature)</label>
-            <input type="number" id="bb-ooc-pe-temp" class="text_pole" min="0" max="2" step="0.1" value="0.8" style="width:100px;" />
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">最大Token数</label>
-            <input type="number" id="bb-ooc-pe-tokens" class="text_pole" min="50" max="8192" value="800" style="width:120px;" />
+          <div class="bb-row">
+            <div class="bb-field" style="flex:1;">
+              <label class="bb-field-label">温度 (Temperature)</label>
+              <input type="number" id="bb-ooc-pe-temp" class="text_pole" min="0" max="2" step="0.1" value="0.8" style="width:100px;" />
+            </div>
+            <div class="bb-field" style="flex:1;">
+              <label class="bb-field-label">最大Token数</label>
+              <input type="number" id="bb-ooc-pe-tokens" class="text_pole" min="50" max="8192" value="800" style="width:120px;" />
+            </div>
           </div>
           <div class="bb-btn-group" style="margin-top:10px;">
-            <button id="bb-ooc-pe-save" class="menu_button bb-btn-primary">💾 保存</button>
-            <button id="bb-ooc-pe-cancel" class="menu_button">取消</button>
+            <button id="bb-ooc-pe-save" class="menu_button bb-btn-primary" type="button">💾 保存</button>
+            <button id="bb-ooc-pe-cancel" class="menu_button" type="button">取消</button>
           </div>
         </div>
       </div>
 
-      <!-- ── 生图API配置 ── -->
+      <!--── 生图API配置 ──-->
       <div class="bb-settings-section">
-        <h4>🎨 生图配置</h4>
+        <h4 class="bb-section-title">🎨 生图配置</h4>
         <div class="bb-field">
           <label class="bb-field-label">生图提供商</label>
           <select id="bb-img-provider" class="text_pole">
@@ -202,7 +199,7 @@
             <textarea id="bb-img-negative" class="text_pole" rows="2" placeholder="lowres, bad anatomy, ..."></textarea>
           </div>
           <div class="bb-field">
-            <label class="bb-field-label">提示词模板（用{prompt} 占位）</label>
+            <label class="bb-field-label">提示词模板（用{prompt}占位）</label>
             <textarea id="bb-img-template" class="text_pole" rows="2" placeholder="{prompt}, masterpiece, best quality"></textarea>
           </div>
           <label class="checkbox_label">
@@ -212,9 +209,9 @@
         </div>
       </div>
 
-      <!-- ── 海报配置 ── -->
+      <!--── 海报配置 ──-->
       <div class="bb-settings-section">
-        <h4>🖼 语录海报配置</h4>
+        <h4 class="bb-section-title">🖼 语录海报配置</h4>
         <div class="bb-field">
           <label class="bb-field-label">默认背景图URL</label>
           <input type="text" id="bb-poster-bg" class="text_pole" placeholder="https://..." />
@@ -223,18 +220,21 @@
           <label class="bb-field-label">自定义字体URL（.woff2/.ttf）</label>
           <input type="text" id="bb-poster-font-url" class="text_pole" placeholder="https://...font.woff2" />
         </div>
-        <div class="bb-field">
-          <label class="bb-field-label">字体名称</label>
-          <input type="text" id="bb-poster-font-name" class="text_pole" placeholder="MyFont" />
+        <div class="bb-row">
+          <div class="bb-field" style="flex:1;">
+            <label class="bb-field-label">字体名称</label>
+            <input type="text" id="bb-poster-font-name" class="text_pole" placeholder="MyFont" />
+          </div>
+          <div class="bb-field" style="flex-shrink:0;">
+            <label class="bb-field-label">文字颜色</label>
+            <input type="color" id="bb-poster-text-color" value="#ffffff" style="width:60px;height:32px;padding:2px;border:1px solid var(--bb-border, #555);border-radius:4px;cursor:pointer;" />
+          </div>
         </div>
-        <div class="bb-field">
-          <label class="bb-field-label">文字颜色</label>
-          <input type="color" id="bb-poster-text-color" value="#ffffff" style="width:60px;height:32px;" />
-        </div></div>
+      </div>
 
-      <!-- ── 主页布局 ── -->
+      <!--── 主页布局 ──-->
       <div class="bb-settings-section">
-        <h4>🏠 主页布局</h4>
+        <h4 class="bb-section-title">🏠 主页布局</h4>
         <div class="bb-layout-selector">
           <div class="bb-layout-option" data-layout="together">
             <span class="bb-layout-icon">👫</span>
@@ -251,9 +251,9 @@
         </div>
       </div>
 
-      <!-- ── 风格预设 ── -->
+      <!--── 风格预设 ──-->
       <div class="bb-settings-section">
-        <h4>🎨 主题风格</h4>
+        <h4 class="bb-section-title">🎨 主题风格</h4>
         <div class="bb-field">
           <label class="bb-field-label">风格预设</label>
           <select id="bb-style-preset" class="text_pole">
@@ -265,35 +265,35 @@
         </div>
       </div>
 
-      <!-- ── 自定义CSS ── -->
+      <!--── 自定义CSS ──-->
       <div class="bb-settings-section">
-        <h4>✨ 自定义 CSS</h4>
-        <p style="font-size:11px;color:var(--bb-text-muted);margin:0 0 8px;">
+        <h4 class="bb-section-title">✨ 自定义 CSS</h4>
+        <p class="bb-hint-text">
           在下方输入自定义CSS，可覆盖插件的任何样式。所有插件元素均以 <code>bb-</code> 或 <code>#bb-</code> 开头。
         </p>
 
         <!-- 示例模板按钮 -->
         <div class="bb-css-templates">
-          <button class="menu_button bb-css-tpl-btn" data-tpl="glow">✨ 发光边框</button>
-          <button class="menu_button bb-css-tpl-btn" data-tpl="round">🔵 圆润气泡</button>
-          <button class="menu_button bb-css-tpl-btn" data-tpl="transparent">🪟 毛玻璃</button>
-          <button class="menu_button bb-css-tpl-btn" data-tpl="pink">🌸 樱花粉</button>
-          <button class="menu_button bb-css-tpl-btn" data-tpl="cyberpunk">🌃 赛博朋克</button></div>
+          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="glow">✨ 发光边框</button>
+          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="round">🔵 圆润气泡</button>
+          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="transparent">🪟 毛玻璃</button>
+          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="pink">🌸 樱花粉</button>
+          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="cyberpunk">🌃 赛博朋克</button>
+        </div>
 
         <textarea id="bb-custom-css" class="text_pole bb-css-editor" rows="8" placeholder="/* 在此输入自定义CSS */"></textarea>
 
         <div class="bb-btn-group" style="margin-top:8px;">
-          <button id="bb-css-apply" class="menu_button bb-btn-primary">🎨 应用CSS</button>
-          <button id="bb-css-reset" class="menu_button bb-btn-danger">🗑 清空</button>
-          <button id="bb-css-copy-prompt" class="menu_button" title="复制AI提示词到剪贴板">📋 复制AI提示词</button>
+          <button id="bb-css-apply" class="menu_button bb-btn-primary" type="button">🎨 应用</button>
+          <button id="bb-css-reset" class="menu_button bb-btn-danger" type="button">🗑清空</button>
+          <button id="bb-css-copy-prompt" class="menu_button" type="button" title="复制AI提示词到剪贴板">📋 复制AI提示词</button>
         </div>
 
-        <!-- AI提示词参考（折叠） -->
-        <details class="bb-css-ai-help" style="margin-top:10px;">
-          <summary style="font-size:12px;color:var(--bb-primary);cursor:pointer;font-weight:600;">💡 如何让AI帮你写CSS？
-          </summary>
+        <!-- AI提示词参考（折叠）-->
+        <details class="bb-css-ai-help">
+          <summary class="bb-details-summary">💡 如何让AI帮你写CSS？</summary>
           <div class="bb-css-ai-prompt-box">
-            <p style="font-size:11px;color:var(--bb-text-dim);line-height:1.7;margin:8px 0;">
+            <p class="bb-hint-text" style="line-height:1.7;margin:8px 0;">
               点击上方「📋 复制AI提示词」按钮，将提示词粘贴给任意AI（ChatGPT/Claude等），然后描述你想要的效果即可。
               AI会返回可直接粘贴到上方编辑器的CSS代码。
             </p>
@@ -304,22 +304,21 @@
         </details>
       </div>
 
-      <!-- ── 数据管理 ── -->
+      <!--── 数据管理 ──-->
       <div class="bb-settings-section">
-        <h4>💾 数据管理</h4>
+        <h4 class="bb-section-title">💾 数据管理</h4>
         <div class="bb-btn-group">
-          <button id="bb-export-md" class="menu_button">📄 导出Markdown</button>
-          <button id="bb-export-json" class="menu_button">📦 导出JSON</button>
-          <button id="bb-clear-data" class="menu_button bb-btn-danger">⚠️ 清空当前聊天数据</button>
+          <button id="bb-export-md" class="menu_button" type="button">📄 导出MD</button>
+          <button id="bb-export-json" class="menu_button" type="button">📦 导出JSON</button>
+          <button id="bb-clear-data" class="menu_button bb-btn-danger" type="button">⚠️ 清空数据</button>
         </div>
       </div>
 
-      <!-- ── 关于 ── -->
+      <!--── 关于 ──-->
       <div class="bb-settings-section bb-about">
-        <p style="font-size:11px;color:var(--bb-text-muted);text-align:center;margin:0;">🦴骨与血 Bone & Blood v0.7.0<br/>
+        <p class="bb-hint-text" style="text-align:center;">🦴 骨与血 Bone & Blood v0.7.0<br/>
           2026@SHADOW&lt;安息之影&gt;
         </p>
       </div></div>
   </div>
 </div>
-
