@@ -1,79 +1,120 @@
-/* 骨与血 — 哥特主题 */
+/* ═══════════════════════════════════════════
+   🕯️ 骨与血 — 哥特主题 (Gothic)
+   暗红色调，纹理背景
+   ═══════════════════════════════════════════ */
+
 [data-bb-theme="gothic"] {
-  --bb-bg-primary: #0d0a0a;
-  --bb-bg-secondary: #151010;
-  --bb-bg-tertiary: #1a1212;
-  --bb-bg-card: rgba(25, 15, 15, 0.9);
-  --bb-bg-input: rgba(20, 12, 12, 0.9);
-  --bb-bg-hover: rgba(180, 40, 40, 0.1);
-  --bb-bg-active: rgba(180, 40, 40, 0.18);
-  --bb-bg-glass: rgba(20, 12, 12, 0.7);
-  --bb-border: rgba(120, 30, 30, 0.3);
-  --bb-border-light: rgba(120, 30, 30, 0.15);
-  --bb-border-focus: rgba(180, 50, 50, 0.5);
-  --bb-text-primary: #ddd0d0;
-  --bb-text-secondary: #b09898;
-  --bb-text-muted: #705858;
-  --bb-text-accent: #c84040;
-  --bb-accent: #a03030;
-  --bb-accent-light: #c84848;
-  --bb-accent-dark: #701818;
-  --bb-accent-glow: rgba(160, 48, 48, 0.4);
-  --bb-danger: #ff4444;
-  --bb-success: #40a040;
+  --bb-primary: #a03030;
+  --bb-primary-dark: #802020;
+  --bb-primary-light: #d05050;
+  --bb-accent: #c04848;
+  --bb-accent-dark: #982828;
+  --bb-accent-light: #e07070;
+  --bb-bg-deep: #0a0606;
+  --bb-bg-panel: #140e0e;
+  --bb-bg-card: #201616;
+  --bb-bg-card-hover: #2c1e1e;
+  --bb-bg-input: #1a1010;
+  --bb-bg-secondary: #180e0e;
+  --bb-text: #d8c8c8;
+  --bb-text-dim: #a89090;
+  --bb-text-muted: #786060;
+  --bb-text-bright: #f0e0e0;
+  --bb-border: rgba(160, 48, 48, 0.2);
+  --bb-border-light: rgba(160, 48, 48, 0.1);
+  --bb-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* 哥特特殊装饰 */
-[data-bb-theme="gothic"] #bb-main-panel {
-  background-image:
-    radial-gradient(ellipse at top, rgba(120,30,30,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom, rgba(0,0,0,0.3) 0%, transparent 70%);
+[data-bb-theme="gothic"] #bb-main-panel,
+[data-bb-theme="gothic"] .bb-main-panel {
+  background: var(--bb-bg-panel);
+  border-color: rgba(160, 48, 48, 0.3);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(160, 48, 48, 0.1),
+    inset 0 0 60px rgba(160, 48, 48, 0.02);
 }
 
-[data-bb-theme="gothic"] .bb-panel-header {
-  background: linear-gradient(180deg, #1a1010, #120a0a);
-  border-bottom: 1px solid rgba(120,30,30,0.3);
-}
-
+[data-bb-theme="gothic"] .bb-trigger-btn,
 [data-bb-theme="gothic"] #bb-trigger-btn {
-  background: linear-gradient(135deg, #501010, #a03030);
-  border-color: rgba(180,50,50,0.3);
-}
-
-[data-bb-theme="gothic"] .bb-ooc-send-btn {
-  background: linear-gradient(135deg, #701818, #a03030);
-}
-
-[data-bb-theme="gothic"] .bb-msg-user .bb-ooc-msg-bubble {
-  background: linear-gradient(135deg, #701818, #a03030);
+  background: linear-gradient(135deg, #802020, #982828);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 16px rgba(160, 48, 48, 0.3);
 }
 
 [data-bb-theme="gothic"] .bb-tab-btn.active {
-  background: linear-gradient(135deg, rgba(180,40,40,0.15), rgba(120,30,30,0.1));
-  border-color: rgba(180,50,50,0.4);
+  background: linear-gradient(135deg, #802020, #982828);
 }
 
-[data-bb-theme="gothic"] .bb-home-listen .bb-home-avatar {
-  border-color: var(--bb-accent-dark);
-  box-shadow: 0 0 25px rgba(160,48,48,0.4);
+[data-bb-theme="gothic"] .bb-big-btn {
+  background: linear-gradient(135deg, #802020, #982828);
+  border-color: var(--bb-primary);
 }
 
-[data-bb-theme="gothic"] .bb-quote-item {
-  border-left-color: var(--bb-accent);
+[data-bb-theme="gothic"] .bb-ooc-send-btn {
+  background: linear-gradient(135deg, #802020, #982828);
 }
 
-[data-bb-theme="gothic"] .bb-dice-display {
-  text-shadow: 0 0 20px rgba(160,48,48,0.6);
+[data-bb-theme="gothic"] .bb-msg-user .bb-ooc-msg-bubble,
+[data-bb-theme="gothic"] .bb-bubble-user {
+  background: linear-gradient(135deg, #802020, #982828);
 }
 
-/* 哥特风微妙纹理 */
-[data-bb-theme="gothic"] .bb-tab-content {
-  background-image: 
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 40px,
-      rgba(120,30,30,0.02) 40px,
-      rgba(120,30,30,0.02) 41px
-    );
+[data-bb-theme="gothic"] .bb-panel-header,
+[data-bb-theme="gothic"] .bb-ooc-header,
+[data-bb-theme="gothic"] .bb-bf-header {
+  background: linear-gradient(180deg, rgba(160, 48, 48, 0.1), transparent);
+}
+
+[data-bb-theme="gothic"] .bb-record-item,
+[data-bb-theme="gothic"] .bb-diary-item,
+[data-bb-theme="gothic"] .bb-npc-card,
+[data-bb-theme="gothic"] .bb-letter-card,
+[data-bb-theme="gothic"] .bb-anni-card {
+  border-color: rgba(160, 48, 48, 0.15);
+}
+
+[data-bb-theme="gothic"] .bb-record-item:hover {
+  border-color: var(--bb-primary);
+  box-shadow: 0 0 15px rgba(160, 48, 48, 0.12);
+}
+
+[data-bb-theme="gothic"] .bb-marquee-container {
+  background: rgba(160, 48, 48, 0.06);
+  border-color: rgba(160, 48, 48, 0.15);
+}
+
+[data-bb-theme="gothic"] .bb-home-card {
+  box-shadow: inset 0 0 40px rgba(160, 48, 48, 0.04);
+}
+
+[data-bb-theme="gothic"] .bb-achievement-popup {
+  border-color: var(--bb-primary);
+  box-shadow: 0 0 60px rgba(160, 48, 48, 0.25);
+}
+
+[data-bb-theme="gothic"] .bb-mobile-float {
+  background: linear-gradient(135deg, #802020, #982828);
+}
+
+/* 哥特装饰性细节 */
+[data-bb-theme="gothic"] .bb-section-title {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+[data-bb-theme="gothic"] .bb-letter-reply {
+  border-left-color: var(--bb-primary);
+}
+
+[data-bb-theme="gothic"] .bb-ach-unlocked {
+  border-color: var(--bb-primary);box-shadow: 0 0 8px rgba(160, 48, 48, 0.15);
+}
+
+/*微妙的纹理效果 */
+[data-bb-theme="gothic"] .bb-tab-nav {
+  background: linear-gradient(180deg, rgba(160, 48, 48, 0.06), var(--bb-bg-secondary));
+}
+
+[data-bb-theme="gothic"] .bb-ooc-input-area {
+  background: linear-gradient(0deg, rgba(160, 48, 48, 0.04), var(--bb-bg-secondary));
 }
