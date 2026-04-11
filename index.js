@@ -328,4 +328,355 @@ function collectMessage(messageId) {
   
   // 视觉反馈
   const btn = $(`.mes[mesid="${messageId}"] .bb-collect-btn`);
+  // ---- 追加到 collectMessage 函数末尾 ----
+  btn.addClass('bb-collected');
+  btn.text('✅');
+  setTimeout(() => btn.text('🌟'), 1500);
+  
+  console.log(`[${EXTENSION_NAME}] 收藏了第 ${messageId} 条消息`);
+}
+
+// 渲染唱片机
+function renderScrapbook() {
+  const container = $('#bb-tab-scrapbook .bb-records-list');
+  const hint = $('#bb-tab-scrapbook .bb-empty-hint');
+  
+  container.empty();
+  
+  if (pluginData.records_bone.length === 0) {
+    hint.show();
+    return;
+  }
+  
+  hint.hide();
+  
+  // 添加导出栏
+  const exportBar = $(`
+    <div class="bb-export-bar">
+      <button class="bb-export-btn" id="bb-export-md">📄 导出 Markdown</button>
+      <button class="bb-export-btn" id="bb-export-json">📦 导出 JSON</button>
+    </div>
+  `);
+  container.append(exportBar);
+  
+  $('#bb-export-md').on('click', exportAsMarkdown);
+  $('#bb-export-json').on('click', exportAsJSON);
+  
+  // 渲染卡片（倒序，最新的在上面）
+  [...pluginData.records_bone].reverse().forEach((record) => {
+    const card = $(`
+      <div class="bb-record-card" data-record-id="${record.id}">
+        <div class="bb-card-who">${escapeHtml(record.who)}</div>
+        <div class="bb-card-text">${escapeHtml(record.text)}</div>
+        ${record.context ? `<div class="bb-card-context">↩ ${escapeHtml(record.context.substring(0, 100))}...</div>` : ''}
+        <div class="bb-card-meta">
+          <span>#${record.floor} · ${record.date}</span>
+          <button class="bb-card-delete" data-id="${record.id}">🗑️ 删除</button>
+        </div>
+      </div>
+    `);
+    container.append(card);
+  });
+  
+  // 绑定删除
+  container.find('.bb-card-delete').on('click', function() {
+    const id = $(this).data('id');
+    deleteRecord(id);
+  });
+}
+
+// 删除收藏
+function deleteRecord(recordId) {
+  pluginData.records_bone = pluginData.records_bone.filter(r => r.id !== recordId);
+  saveChatData();
+  renderScrapbook();
+}
+
+// 渲染日记本
+function renderDiary() {
+  const container = $('#bb-tab-diary .bb-diary-list');
+  const hint = $('#bb-tab-diary .bb-empty-hint');
+  
+  container.empty();
+  
+  if (pluginData.diary_blood.length === 0) {
+    hint.show();
+    return;
+  }
+  
+  hint.hide();
+  
+  [...pluginData.diary_blood].reverse().forEach((entry) => {
+    const card = $(`
+      <div class="bb-diary-entry">
+        <div class="bb-diary-date">📅 ${entry.date}</div>
+        <div class="bb-diary-text">${escapeHtml(entry.content)}</div>
+      </div>
+    `);
+    container.append(card);
+  });
+}
+
+// 渲染情报站
+function renderIntel() {
+  $('.bb-summary-content').text(
+    pluginData.summaries.length > 0
+      ? pluginData.summaries[pluginData.summaries.length - 1].content
+      : '暂无总结'
+  );
+  $('.bb-weather-content').text(pluginData.weather || '未检测');
+  
+  // NPC 列表
+  const npcContainer = $('.bb-npc-list');
+  npcContainer.empty();
+  
+  const npcEntries = Object.entries(pluginData.npc_status);
+  if (npcEntries.length === 0) {
+    npcContainer.text('暂无NPC追踪');
+  } else {
+    npcEntries.forEach(([name, status]) => {
+      npcContainer.append(`<div><strong>${escapeHtml(name)}</strong>: ${escapeHtml(status)}</div>`);
+    });
+  }
+}
+
+// ============================================
+// 副 API 调用
+// ============================================
+
+async function callSubAPI(messages) {
+  const settings = getSettings();
+  
+  if (!settings.api_endpoint || !settings.api_key) {
+    console.warn(`[${EXTENSION_NAME}] 副API未配置`);
+    return null;
+  }
+  
+  try {
+    const response = await fetch(settings.api_endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.api_key}`,
+      },
+      body: JSON.stringify({
+        model: settings.api_model,
+        messages: messages,
+        max_tokens: 500,
+        temperature: 0.8,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API错误: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (error) {
+    console.error(`[${EXTENSION_NAME}] API调用失败:`, error);
+    return null;
+  }
+}
+
+// 获取最近N条聊天记录（格式化）
+function getRecentChat(count = 30) {
+  const context = getContext();
+  const chat = context.chat;
+  
+  if (!chat || chat.length === 0) return [];
+  
+  const recentMessages = chat.slice(-count);
+  return recentMessages.map(msg => ({
+    role: msg.is_user ? 'user' : 'assistant',
+    name: msg.name,
+    content: msg.mes,
+  }));
+}
+
+// ============================================
+// 功能实现：日记生成
+// ============================================
+
+async function generateDiary() {
+  const context = getContext();
+  const charName = context.name2 || '角色';
+  const userName = context.name1 || '用户';
+  const recentChat = getRecentChat(30);
+  
+  if (recentChat.length < 5) return; // 消息太少不生成
+  
+  const chatSummary = recentChat
+    .map(m => `${m.name}: ${m.content}`)
+    .join('\n')
+    .substring(0, 3000); // 限制长度
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `你是一位文学助手。请以"${charName}"的第一人称视角写一篇私密日记。
+日记应该总结最近发生的事件，并流露出${charName}对${userName}的真实情感（可能是隐藏的）。
+风格要求：文学性强、情感细腻、150-250字。不要使用markdown格式。`
+    },
+    {
+      role: 'user',
+      content: `以下是最近的对话记录，请根据这些内容写日记：\n\n${chatSummary}`
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  if (result) {
+    const entry = {
+      id: `diary-${Date.now()}`,
+      content: result,
+      date: new Date().toLocaleString('zh-CN'),
+    };
+    pluginData.diary_blood.push(entry);
+    saveChatData();
+    renderDiary();
+    console.log(`[${EXTENSION_NAME}] 📖 日记已生成`);
+  }
+}
+
+// ============================================
+// 功能实现：阿卡夏总结
+// ============================================
+
+async function generateSummary() {
+  const recentChat = getRecentChat(40);
+  if (recentChat.length < 10) return;
+  
+  const chatSummary = recentChat
+    .map(m => `${m.name}: ${m.content}`)
+    .join('\n')
+    .substring(0, 4000);
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `你是一位冒险日志记录员。请用简洁的"情报简报"风格，总结以下对话中发生的重要事件、关键决策和人物关系变化。
+格式：分条列出，每条不超过一句话。总计不超过200字。`
+    },
+    {
+      role: 'user',
+      content: chatSummary
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  if (result) {
+    pluginData.summaries.push({
+      id: `sum-${Date.now()}`,
+      content: result,
+      date: new Date().toLocaleString('zh-CN'),
+    });
+    saveChatData();
+    renderIntel();
+    console.log(`[${EXTENSION_NAME}] 📜 总结已生成`);
+  }
+}
+
+// ============================================
+// 功能实现：环境雷达
+// ============================================
+
+async function generateWeather() {
+  const recentChat = getRecentChat(10);
+  const chatSnippet = recentChat
+    .map(m => `${m.name}: ${m.content}`)
+    .join('\n')
+    .substring(0, 1500);
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `根据以下对话推断当前场景的环境。用一句话描述天气、光线、声音和气味。
+示例："深夜的地牢，火把噼啪作响，空气中弥漫着潮湿的石头气味，远处传来水滴回声。"
+只输出描述，不要其他文字。`
+    },
+    {
+      role: 'user',
+      content: chatSnippet
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  if (result) {
+    pluginData.weather = result;
+    saveChatData();
+    renderIntel();
+  }
+}
+
+// ============================================
+// 功能实现：蝴蝶效应（平行宇宙）
+// ============================================
+
+async function generateParallelUniverse(messageId) {
+  const context = getContext();
+  const message = context.chat[messageId];
+  if (!message) return;
+  
+  // 视觉反馈
+  const btn = $(`.mes[mesid="${messageId}"] .bb-butterfly-btn`);
+  btn.text('⏳');
+  
+  const messages = [
+    {
+      role: 'system',
+      content: `如果在这个瞬间，角色做出了截然相反、极其离谱或者遭遇了大失败的选择，会发生什么？
+写一个50-80字的搞笑或暗黑平行宇宙分支。要简短有趣。不要使用markdown。`
+    },
+    {
+      role: 'user',
+      content: `原文："${message.mes.substring(0, 500)}"\n\n请写出平行宇宙版本：`
+    }
+  ];
+  
+  const result = await callSubAPI(messages);
+  
+  btn.text('🦋');
+  
+  if (result) {
+    const parallel = {
+      id: `par-${Date.now()}`,
+      origin: message.mes.substring(0, 80),
+      content: result,
+      floor: messageId,
+      date: new Date().toLocaleString('zh-CN'),
+    };
+    
+    if (!pluginData.parallel_universes) {
+      pluginData.parallel_universes = [];
+    }
+    pluginData.parallel_universes.push(parallel);
+    saveChatData();
+    renderParallel();
+  }
+}
+
+function renderParallel() {
+  const container = $('#bb-tab-parallel .bb-parallel-list');
+  const hint = $('#bb-tab-parallel .bb-empty-hint');
+  
+  container.empty();
+  
+  const list = pluginData.parallel_universes || [];
+  if (list.length === 0) {
+    hint.show();
+    return;
+  }
+  
+  hint.hide();
+  
+  [...list].reverse().forEach((p) => {
+    const card = $(`
+      <div class="bb-parallel-card">
+        <div class="bb-parallel-origin">📍 原文: "${escapeHtml(p.origin)}..."</div>
+        <div class="bb-parallel-text">🦋 ${escapeHtml(p.content)}</div>
+      </div>
+    `
 
