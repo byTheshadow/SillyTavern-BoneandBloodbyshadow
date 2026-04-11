@@ -1,10 +1,10 @@
 // ============================================
-// 🦴 骨与血 (Bone & Blood) - SillyTavern 插件
+// 🦴 骨与血 (Bone & Blood) v0.2.0
+// SillyTavern 沉浸式风味增强与记忆手账插件
 // ============================================
 
 import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js';
-import { saveSettingsDebounced } from '../../../../script.js';
-import { eventSource, event_types } from '../../../../script.js';
+import { saveSettingsDebounced, eventSource, event_types } from '../../../../script.js';
 
 const EXTENSION_NAME = 'third-party/SillyTavern-BoneandBloodbyshadow';
 const EXTENSION_FOLDER = 'third-party/SillyTavern-BoneandBloodbyshadow';
@@ -12,9 +12,9 @@ const EXTENSION_FOLDER = 'third-party/SillyTavern-BoneandBloodbyshadow';
 // ---- 默认设置 ----
 const defaultSettings = {
   enabled: true,
-  api_endpoint: '',
+  api_base: '',
   api_key: '',
-  api_model: 'gpt-4o-mini',
+  api_model: '',
   auto_diary_enabled: true,
   diary_trigger_count: 30,
   message_counter: 0,
@@ -32,12 +32,20 @@ let pluginData = {
   parallel_universes: [],
 };
 
+// ---- 蝴蝶分支对话窗口的当前会话 ----
+let butterflySession = {
+  active: false,
+  originFloor: null,
+  originText: '',
+  history: [],
+};
+
 // ============================================
 // 入口
 // ============================================
 
 jQuery(async () => {
-  console.log('[骨与血] 🦴 开始加载...');
+  console.log('[骨与血] 🦴 v0.2.0 开始加载...');
 
   // 1. 初始化设置
   if (!extension_settings[EXTENSION_NAME]) {
@@ -48,29 +56,39 @@ jQuery(async () => {
     ...extension_settings[EXTENSION_NAME],
   });
 
-  // 2. 加载扩展设置面板 HTML
-  const settingsHtml = await renderExtensionTemplateAsync(EXTENSION_FOLDER, 'settings');
-  $('#extensions_settings').append(settingsHtml);
+  // 2. 加载扩展设置面板
+  try {
+    const settingsHtml = await renderExtensionTemplateAsync(EXTENSION_FOLDER, 'settings');
+    $('#extensions_settings').append(settingsHtml);
+  } catch (e) {
+    console.error('[骨与血] 无法加载settings.html:', e);
+  }
 
-  // 3. 把保存的设置填入表单
+  // 3. 填入设置
   loadSettingsToForm();
 
   // 4. 绑定扩展面板事件
   bindExtensionPanelEvents();
 
-  // 5. 注入悬浮按钮 + 主面板
+  // 5. 注入悬浮UI
   injectFloatingUI();
 
-  // 6. 注册酒馆事件监听
+  // 6. 注入蝴蝶窗口
+  injectButterflyWindow();
+
+  // 7. 注册事件
   registerEventListeners();
 
-  // 7. 注册宏
+  // 8. 注册宏
   registerAllMacros();
 
-  // 8. 加载当前聊天的数据
+  // 9. 加载数据
   loadChatData();
 
-  console.log('[骨与血] ✅ 加载完成！');
+  // 10. 为已有消息注入按钮
+  injectButtonsToExistingMessages();
+
+  console.log('[骨与血] ✅ v0.2.0 加载完成！');
 });
 
 // ============================================
@@ -88,11 +106,15 @@ function saveSettings() {
 function loadSettingsToForm() {
   const s = getSettings();
   $('#bb-enabled').prop('checked', s.enabled);
-  $('#bb-api-endpoint').val(s.api_endpoint);
+  $('#bb-api-endpoint').val(s.api_base);
   $('#bb-api-key').val(s.api_key);
-  $('#bb-api-model').val(s.api_model);
   $('#bb-diary-trigger').val(s.diary_trigger_count);
   $('#bb-auto-diary').prop('checked', s.auto_diary_enabled);
+  // 如果已有保存的模型，添加到下拉栏
+  if (s.api_model) {
+    const select = $('#bb-api-model');
+    select.empty().append(`<option value="${s.api_model}" selected>${s.api_model}</option>`);
+  }
 }
 
 function bindExtensionPanelEvents() {
@@ -101,14 +123,14 @@ function bindExtensionPanelEvents() {
     saveSettings();
   });
   $('#bb-api-endpoint').on('input', function () {
-    getSettings().api_endpoint = $(this).val();
+    getSettings().api_base = $(this).val().replace(/\/+$/, ''); // 去掉末尾斜杠
     saveSettings();
   });
   $('#bb-api-key').on('input', function () {
     getSettings().api_key = $(this).val();
     saveSettings();
   });
-  $('#bb-api-model').on('input', function () {
+  $('#bb-api-model').on('change', function () {
     getSettings().api_model = $(this).val();
     saveSettings();
   });
@@ -121,39 +143,167 @@ function bindExtensionPanelEvents() {
     saveSettings();
   });
 
+  // 测试连接按钮
+  $('#bb-btn-test-api').on('click', () => testAPIConnection());
+
+  // 手动操作按钮
   $('#bb-btn-diary').on('click', () => generateDiary());
   $('#bb-btn-summary').on('click', () => generateSummary());
   $('#bb-btn-weather').on('click', () => generateWeather());
 }
 
 // ============================================
-// 悬浮 UI 注入
+// API 连接测试 & 模型获取
+// ============================================
+
+async function testAPIConnection() {
+  const s = getSettings();
+  const statusEl = $('#bb-api-status');
+  const selectEl = $('#bb-api-model');
+  const btn = $('#bb-btn-test-api');
+
+  if (!s.api_base || !s.api_key) {
+    statusEl.html('<span style="color:#ff6b6b;">❌ 请先填写 API Base URL 和 Key</span>');
+    return;
+  }
+
+  btn.val('⏳ 连接中...').prop('disabled', true);
+  statusEl.html('<span style="color:#f0ad4e;">⏳ 正在连接...</span>');
+
+  try {
+    // 尝试获取模型列表
+    let baseUrl = s.api_base.replace(/\/+$/, '');
+    // 兼容：如果用户填了 /chat/completions 结尾，帮他截取
+    if (baseUrl.endsWith('/chat/completions')) {
+      baseUrl = baseUrl.replace('/chat/completions', '');
+    }
+
+    const response = await fetch(`${baseUrl}/models`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${s.api_key}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const models = data.data || data.models || [];
+
+    if (models.length === 0) {
+      statusEl.html('<span style="color:#f0ad4e;">⚠️ 连接成功，但没有获取到模型列表</span>');
+      selectEl.empty().append('<option value="">-- 请手动输入模型名 --</option>');
+    } else {
+      // 排序模型列表
+      const modelIds = models.map(m => m.id || m).sort();
+      selectEl.empty();
+      modelIds.forEach(id => {
+        const selected = id === s.api_model ? 'selected' : '';
+        selectEl.append(`<option value="${id}" ${selected}>${id}</option>`);
+      });
+
+      // 如果之前没选过模型，自动选第一个
+      if (!s.api_model && modelIds.length > 0) {
+        s.api_model = modelIds[0];
+        saveSettings();
+      }
+
+      statusEl.html(`<span style="color:#4ecdc4;">✅ 连接成功！找到 ${modelIds.length} 个模型</span>`);
+    }
+  } catch (error) {
+    console.error('[骨与血] API连接测试失败:', error);
+    statusEl.html(`<span style="color:#ff6b6b;">❌ 连接失败: ${error.message}</span>`);
+    selectEl.empty().append('<option value="">-- 连接失败 --</option>');
+  }
+
+  btn.val('🔗 测试连接 & 获取模型').prop('disabled', false);
+}
+
+// ============================================
+// 副 API 调用（通用）
+// ============================================
+
+async function callSubAPI(messages, maxTokens = 500) {
+  const s = getSettings();
+  if (!s.api_base || !s.api_key || !s.api_model) {
+    toastr.warning('请先配置并测试副 API 连接');
+    return null;
+  }
+
+  try {
+    let baseUrl = s.api_base.replace(/\/+$/, '');
+    if (baseUrl.endsWith('/chat/completions')) {
+      baseUrl = baseUrl.replace('/chat/completions', '');
+    }
+
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${s.api_key}`,
+      },
+      body: JSON.stringify({
+        model: s.api_model,
+        messages: messages,
+        max_tokens: maxTokens,
+        temperature: 0.8,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`${response.status}: ${errText.substring(0, 200)}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (error) {
+    console.error('[骨与血] API调用失败:', error);
+    toastr.error(`副API调用失败: ${error.message}`);
+    return null;
+  }
+}
+
+function getRecentChat(count = 30) {
+  const context = getContext();
+  const chat = context.chat;
+  if (!chat || chat.length === 0) return [];
+  return chat.slice(-count).map(msg => ({
+    role: msg.is_user ? 'user' : 'assistant',
+    name: msg.name,
+    content: msg.mes,
+  }));
+}
+
+function formatChatForPrompt(messages) {
+  return messages.map(m => `${m.name}: ${m.content}`).join('\n').substring(0, 3000);
+}
+
+// ============================================
+// 悬浮 UI
 // ============================================
 
 function injectFloatingUI() {
-  // ---- 悬浮按钮 ----
   const floatBtn = $(`<div id="bb-float-button" title="骨与血 Bone & Blood">🦴</div>`);
   $('body').append(floatBtn);
 
-  // ---- 主面板 ----
   const panel = $(`
     <div id="bb-panel" class="bb-panel-hidden">
-
-      <!-- 头部 -->
       <div class="bb-panel-header">
         <span class="bb-panel-title">🦴 骨与血</span>
+        <span class="bb-panel-char-info" id="bb-char-info"></span>
         <button class="bb-panel-close">✕</button>
       </div>
-
-      <!-- 内容区 -->
       <div class="bb-panel-content">
 
         <!-- 🌟 唱片机 -->
         <div class="bb-tab-content" id="bb-tab-scrapbook">
           <h3>🌟 唱片机 — 语录收藏</h3>
           <div class="bb-export-bar" style="display:none;">
-            <button class="bb-export-btn" id="bb-export-md">📄 导出 Markdown</button>
-            <button class="bb-export-btn" id="bb-export-json">📦 导出 JSON</button>
+            <button class="bb-export-btn" id="bb-export-md">📄 Markdown</button>
+            <button class="bb-export-btn" id="bb-export-json">📦 JSON</button>
           </div>
           <p class="bb-empty-hint" id="bb-scrap-empty">还没有收藏任何语录~<br/>点击消息旁的 🌟 收藏吧</p>
           <div class="bb-records-list"></div>
@@ -162,42 +312,59 @@ function injectFloatingUI() {
         <!-- 📖 日记本 -->
         <div class="bb-tab-content bb-hidden" id="bb-tab-diary">
           <h3>📖 日记本</h3>
-          <p class="bb-empty-hint" id="bb-diary-empty">角色还没有写日记...<br/>在扩展设置中点击"立即生成日记"试试</p>
+          <button class="bb-inline-btn" id="bb-gen-diary-inline">✍️ 立即生成</button>
+          <p class="bb-empty-hint" id="bb-diary-empty">角色还没有写日记...</p>
           <div class="bb-diary-list"></div>
         </div>
 
         <!-- 📻 情报站 -->
         <div class="bb-tab-content bb-hidden" id="bb-tab-intel">
           <h3>📻 情报站</h3>
+
           <div class="bb-intel-section">
-            <h4>📜 阿卡夏记录</h4>
+            <div class="bb-intel-header">
+              <h4>📜 阿卡夏记录</h4>
+              <button class="bb-inline-btn bb-refresh-summary">🔄</button>
+            </div>
             <div class="bb-summary-content">暂无总结</div>
           </div>
+
           <div class="bb-intel-section">
-            <h4>☁️ 环境雷达</h4>
+            <div class="bb-intel-header">
+              <h4>☁️ 环境雷达</h4>
+              <button class="bb-inline-btn bb-refresh-weather">🔄</button>
+            </div>
             <div class="bb-weather-content">未检测</div>
           </div>
+
           <div class="bb-intel-section">
-            <h4>❤️ 氛围心电图</h4>
+            <div class="bb-intel-header">
+              <h4>❤️ 氛围心电图</h4>
+              <button class="bb-inline-btn bb-refresh-vibe">🔄</button>
+            </div>
             <div class="bb-vibe-content">未检测</div>
           </div>
+
           <div class="bb-intel-section">
-            <h4>🗺️ NPC 动态</h4>
-            <div class="bb-npc-list">暂无NPC追踪</div>
+            <div class="bb-intel-header">
+              <h4>🗺️ NPC 动态</h4>
+              <button class="bb-inline-btn bb-add-npc">➕ 添加NPC</button>
+            </div>
+            <div class="bb-npc-list"></div>
           </div>
         </div>
 
         <!-- 🦋 观测站 -->
         <div class="bb-tab-content bb-hidden" id="bb-tab-parallel">
           <h3>🦋 观测站 — 平行宇宙</h3>
-          <p class="bb-empty-hint" id="bb-parallel-empty">点击消息旁的 🦋 按钮生成平行宇宙</p>
+          <p class="bb-empty-hint" id="bb-parallel-empty">点击消息旁的 🦋 按钮探索平行宇宙</p>
           <div class="bb-parallel-list"></div>
         </div>
 
         <!-- 🃏 命运盘 -->
         <div class="bb-tab-content bb-hidden" id="bb-tab-fate">
           <h3>🃏 命运盘</h3>
-          <p style="color:var(--bb-text-muted);font-size:13px;margin-bottom:12px;">点击骰子生成突发事件，下一次发送时将通过 {{bb_chaos_event}} 宏注入预设</p>
+          <p class="bb-hint-text">点击骰子生成突发事件<br/>通过 <code>{{bb_chaos_event}}</code> 注入预设</p>
           <button id="bb-roll-fate" class="bb-big-button">🎲 摇骰子！</button>
           <div class="bb-fate-result"></div>
         </div>
@@ -212,20 +379,18 @@ function injectFloatingUI() {
         <button class="bb-nav-btn" data-tab="parallel" title="观测站">🦋</button>
         <button class="bb-nav-btn" data-tab="fate" title="命运盘">🃏</button>
       </div>
-
     </div>
   `);
   $('body').append(panel);
 
-  // ---- 绑定面板事件 ----
+  // ---- 绑定事件 ----
   $('#bb-float-button').on('click', () => {
     $('#bb-panel').toggleClass('bb-panel-hidden');
+    updateCharInfo();
   });
-  $('.bb-panel-close').on('click', () => {
-    $('#bb-panel').addClass('bb-panel-hidden');
-  });
+  $('.bb-panel-close').on('click', () => $('#bb-panel').addClass('bb-panel-hidden'));
 
-  // 导航切换
+  // 导航
   $('.bb-nav-btn').on('click', function () {
     const tab = $(this).data('tab');
     $('.bb-nav-btn').removeClass('bb-nav-active');
@@ -234,12 +399,194 @@ function injectFloatingUI() {
     $(`#bb-tab-${tab}`).removeClass('bb-hidden');
   });
 
-  // 命运骰子
+  // 功能按钮
   $('#bb-roll-fate').on('click', () => rollFate());
-
-  // 导出
   $('#bb-export-md').on('click', () => exportAsMarkdown());
   $('#bb-export-json').on('click', () => exportAsJSON());
+  $('#bb-gen-diary-inline').on('click', () => generateDiary());
+
+  // 情报站刷新按钮
+  $('.bb-refresh-summary').on('click', () => generateSummary());
+  $('.bb-refresh-weather').on('click', () => generateWeather());
+  $('.bb-refresh-vibe').on('click', () => generateVibe());
+
+  // NPC 添加
+  $('.bb-add-npc').on('click', () => {
+    const name = prompt('输入NPC名字：');
+    if (name && name.trim()) {
+      generateNPCStatus(name.trim());
+    }
+  });
+}
+
+function updateCharInfo() {
+  const context = getContext();
+  const charName = context.name2 || '';
+  $('#bb-char-info').text(charName ? `💬 ${charName}` : '');
+}
+
+// ============================================
+// 🦋 蝴蝶窗口（平行宇宙分支对话）
+// ============================================
+
+function injectButterflyWindow() {
+  const bfWindow = $(`
+    <div id="bb-butterfly-window" class="bb-hidden">
+      <div class="bb-bf-header">
+        <span class="bb-bf-title">🦋 平行宇宙分支</span>
+        <div class="bb-bf-actions">
+          <button class="bb-bf-export" title="导出对话">📄</button>
+          <button class="bb-bf-close" title="关闭">✕</button>
+        </div>
+      </div>
+      <div class="bb-bf-origin"></div>
+      <div class="bb-bf-chat"></div>
+      <div class="bb-bf-input-area">
+        <textarea class="bb-bf-input" placeholder="在平行宇宙中说些什么..." rows="2"></textarea>
+        <button class="bb-bf-send">发送</button>
+      </div>
+    </div>
+  `);
+  $('body').append(bfWindow);
+
+  // 关闭
+  $('.bb-bf-close').on('click', () => {
+    $('#bb-butterfly-window').addClass('bb-hidden');
+    butterflySession.active = false;
+  });
+
+  // 发送
+  $('.bb-bf-send').on('click', () => sendButterflyMessage());
+  $('.bb-bf-input').on('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendButterflyMessage();
+    }
+  });
+
+  // 导出
+  $('.bb-bf-export').on('click', () => exportButterflyChat());
+}
+
+function openButterflyWindow(messageId) {
+  const context = getContext();
+  const message = context.chat[messageId];
+  if (!message) return;
+
+  butterflySession = {
+    active: true,
+    originFloor: messageId,
+    originText: message.mes,
+    history: [],
+  };
+
+  // 填入原文
+  $('.bb-bf-origin').html(`<strong>📍 原文 #${messageId}:</strong> ${escapeHtml(message.mes.substring(0, 200))}...`);
+  $('.bb-bf-chat').empty();
+  $('.bb-bf-input').val('');
+  $('#bb-butterfly-window').removeClass('bb-hidden');
+
+  // 自动生成第一条平行宇宙回复
+  generateButterflyFirst(message);
+}
+
+async function generateButterflyFirst(message) {
+  const context = getContext();
+  const charName = context.name2 || '角色';
+
+  appendButterflyMessage('system', '🌀 正在撕裂时空...');
+
+  const messages = [
+    {
+      role: 'system',
+      content: `你正在进行一个"平行宇宙"分支剧情。原始剧情中角色说了以下这段话。现在，在这个平行宇宙中，角色做出了截然相反或极其离谱的选择。请以"${charName}"的身份，用角色扮演的方式写出这个平行宇宙的开端（100-200字）。之后用户可能会继续和你互动，请保持这个平行宇宙的设定继续角色扮演。`,
+    },
+    {
+      role: 'user',
+      content: `原文："${message.mes.substring(0, 800)}"\n\n请开始平行宇宙分支：`,
+    },
+  ];
+
+  const result = await callSubAPI(messages, 800);
+
+  // 移除 loading 消息
+  $('.bb-bf-chat .bb-bf-msg-system').last().remove();
+
+  if (result) {
+    butterflySession.history = [...messages, { role: 'assistant', content: result }];
+    appendButterflyMessage('assistant', result);
+
+    // 保存到观测站
+    pluginData.parallel_universes.push({
+      id: `par-${Date.now()}`,
+      origin: message.mes.substring(0, 80),
+      content: result,
+      floor: butterflySession.originFloor,
+      date: new Date().toLocaleString('zh-CN'),
+    });
+    saveChatData();
+    renderParallel();
+  } else {
+    appendButterflyMessage('system', '❌ 生成失败，请检查API设置');
+  }
+}
+
+async function sendButterflyMessage() {
+  const input = $('.bb-bf-input');
+  const text = input.val().trim();
+  if (!text || !butterflySession.active) return;
+
+  input.val('');
+  appendButterflyMessage('user', text);
+
+  butterflySession.history.push({ role: 'user', content: text });
+
+  appendButterflyMessage('system', '🌀 思考  appendButterflyMessage('system', '🌀 思考中...');
+
+  const result = await callSubAPI(butterflySession.history, 800);
+
+  // 移除 loading
+  $('.bb-bf-chat .bb-bf-msg-system').last().remove();
+
+  if (result) {
+    butterflySession.history.push({ role: 'assistant', content: result });
+    appendButterflyMessage('assistant', result);
+  } else {
+    appendButterflyMessage('system', '❌ 回复失败');
+  }
+}
+
+function appendButterflyMessage(role, text) {
+  const chatEl = $('.bb-bf-chat');
+  const roleLabel = role === 'user' ? '🧑 你' : role === 'assistant' ? '🦋 平行宇宙' : '⚙️';
+  const cssClass = `bb-bf-msg bb-bf-msg-${role}`;
+  chatEl.append(`<div class="${cssClass}"><strong>${roleLabel}:</strong> ${escapeHtml(text)}</div>`);
+  chatEl.scrollTop(chatEl[0].scrollHeight);
+}
+
+function exportButterflyChat() {
+  if (butterflySession.history.length === 0) {
+    toastr.info('没有可导出的对话');
+    return;
+  }
+
+  const context = getContext();
+  const charName = context.name2 || '角色';
+
+  let md = `# 🦋 平行宇宙分支对话\n\n`;
+  md += `> 角色: ${charName}\n`;
+  md += `> 原文楼层: #${butterflySession.originFloor}\n`;
+  md += `> 导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
+  md += `**📍 原文:** ${butterflySession.originText.substring(0, 200)}...\n\n---\n\n`;
+
+  butterflySession.history.forEach((msg) => {
+    if (msg.role === 'system') return;
+    const label = msg.role === 'user' ? '🧑 你' : `🦋 ${charName}（平行）`;
+    md += `**${label}:**\n\n${msg.content}\n\n---\n\n`;
+  });
+
+  downloadFile(`butterfly_${charName}_${Date.now()}.md`, md, 'text/markdown');
+  toastr.success('📄 平行宇宙对话已导出');
 }
 
 // ============================================
@@ -262,25 +609,66 @@ function registerEventListeners() {
     loadChatData();
     getSettings().message_counter = 0;
     saveSettings();
+    updateCharInfo();
+    // 为新聊天中已有的消息注入按钮
+    setTimeout(() => injectButtonsToExistingMessages(), 500);
   });
 }
 
-// 在消息气泡旁注入按钮
+// 为页面上已存在的消息注入按钮
+function injectButtonsToExistingMessages() {
+  if (!getSettings().enabled) return;
+  $('#chat .mes').each(function () {
+    const mesId = $(this).attr('mesid');
+    if (mesId !== undefined) {
+      injectMessageButtons(parseInt(mesId));
+    }
+  });
+}
+
+// 在消息气泡旁注入 🌟🦋 按钮
 function injectMessageButtons(messageId) {
   const msg = $(`.mes[mesid="${messageId}"]`);
   if (msg.length === 0 || msg.find('.bb-msg-buttons').length > 0) return;
 
   const btns = $(`
-    <div class="bb-msg-buttons">
-      <button class="bb-msg-btn bb-collect-btn" title="收藏这句话">🌟</button>
-      <button class="bb-msg-btn bb-butterfly-btn" title="平行宇宙">🦋</button>
+    <div class="bb-msg-buttons" style="display:inline-flex;gap:2px;margin-left:4px;">
+      <span class="bb-msg-btn bb-collect-btn" title="收藏到唱片机" style="cursor:pointer;opacity:0.5;font-size:14px;">🌟</span>
+      <span class="bb-msg-btn bb-butterfly-btn" title="打开平行宇宙" style="cursor:pointer;opacity:0.5;font-size:14px;">🦋</span>
     </div>
   `);
 
-  msg.find('.mes_buttons').prepend(btns);
+  // 尝试多种注入位置以兼容不同版本酒馆
+  const extraBtns = msg.find('.mes_buttons .extraMesButtons');
+  const mesButtons = msg.find('.mes_buttons');
+  const mesBlock = msg.find('.mes_block');
 
-  btns.find('.bb-collect-btn').on('click', () => collectMessage(messageId));
-  btns.find('.bb-butterfly-btn').on('click', () => generateParallelUniverse(messageId));
+  if (extraBtns.length > 0) {
+    extraBtns.prepend(btns);
+  } else if (mesButtons.length > 0) {
+    mesButtons.prepend(btns);
+  } else if (mesBlock.length > 0) {
+    mesBlock.append(btns);
+  } else {
+    msg.append(btns);
+  }
+
+  // 绑定事件
+  btns.find('.bb-collect-btn').on('click', function (e) {
+    e.stopPropagation();
+    collectMessage(messageId);
+  });
+  btns.find('.bb-butterfly-btn').on('click', function (e) {
+    e.stopPropagation();
+    openButterflyWindow(messageId);
+  });
+
+  // hover效果
+  btns.find('.bb-msg-btn').on('mouseenter', function () {
+    $(this).css('opacity', '1').css('transform', 'scale(1.2)');
+  }).on('mouseleave', function () {
+    $(this).css('opacity', '0.5').css('transform', 'scale(1)');
+  });
 }
 
 // ============================================
@@ -314,8 +702,8 @@ function collectMessage(messageId) {
   renderScrapbook();
 
   const btn = $(`.mes[mesid="${messageId}"] .bb-collect-btn`);
-  btn.text('✅').addClass('bb-collected');
-  setTimeout(() => btn.text('🌟'), 1500);
+  btn.text('✅').css('opacity', '1');
+  setTimeout(() => btn.text('🌟').css('opacity', '0.5'), 1500);
 
   toastr.success('已收藏到唱片机 🌟');
 }
@@ -394,10 +782,34 @@ function renderIntel() {
   npcContainer.empty();
   const npcEntries = Object.entries(pluginData.npc_status);
   if (npcEntries.length === 0) {
-    npcContainer.text('暂无NPC追踪');
+    npcContainer.html('<span class="bb-empty-small">暂无NPC追踪，点击 ➕ 添加</span>');
   } else {
     npcEntries.forEach(([name, status]) => {
-      npcContainer.append(`<div><strong>${escapeHtml(name)}</strong>: ${escapeHtml(status)}</div>`);
+      const npcCard = $(`
+        <div class="bb-npc-card">
+          <div class="bb-npc-name">${escapeHtml(name)}</div>
+          <div class="bb-npc-status">${escapeHtml(status)}</div>
+          <div class="bb-npc-actions">
+            <button class="bb-inline-btn bb-npc-spy" data-name="${escapeHtml(name)}">🔍 窥探</button>
+            <button class="bb-inline-btn bb-npc-remove" data-name="${escapeHtml(name)}">🗑️</button>
+          </div>
+        </div>
+      `);
+      npcContainer.append(npcCard);
+    });
+
+    // 绑定窥探按钮
+    npcContainer.find('.bb-npc-spy').on('click', function () {
+      const name = $(this).data('name');
+      generateNPCStatus(name);
+    });
+    // 绑定移除按钮
+    npcContainer.find('.bb-npc-remove').on('click', function () {
+      const name = $(this).data('name');
+      delete pluginData.npc_status[name];
+      saveChatData();
+      renderIntel();
+      toastr.info(`已移除 ${name}`);
     });
   }
 }
@@ -417,8 +829,9 @@ function renderParallel() {
   [...list].reverse().forEach((p) => {
     container.append(`
       <div class="bb-parallel-card">
-        <div class="bb-parallel-origin">📍 原文: "${escapeHtml(p.origin)}..."</div>
+        <div class="bb-parallel-origin">📍 原文 #${p.floor}: "${escapeHtml(p.origin)}..."</div>
         <div class="bb-parallel-text">🦋 ${escapeHtml(p.content)}</div>
+        <div class="bb-parallel-date">${p.date}</div>
       </div>
     `);
   });
@@ -429,61 +842,6 @@ function renderAll() {
   renderDiary();
   renderIntel();
   renderParallel();
-}
-
-// ============================================
-// 副 API 调用
-// ============================================
-
-async function callSubAPI(messages) {
-  const s = getSettings();
-  if (!s.api_endpoint || !s.api_key) {
-    toastr.warning('请先在扩展设置中配置副 API');
-    return null;
-  }
-
-  try {
-    const response = await fetch(s.api_endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${s.api_key}`,
-      },
-      body: JSON.stringify({
-        model: s.api_model,
-        messages: messages,
-        max_tokens: 500,
-        temperature: 0.8,
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`${response.status}: ${errText.substring(0, 200)}`);
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || null;
-  } catch (error) {
-    console.error('[骨与血] API 调用失败:', error);
-    toastr.error(`副API调用失败: ${error.message}`);
-    return null;
-  }
-}
-
-function getRecentChat(count = 30) {
-  const context = getContext();
-  const chat = context.chat;
-  if (!chat || chat.length === 0) return [];
-  return chat.slice(-count).map(msg => ({
-    role: msg.is_user ? 'user' : 'assistant',
-    name: msg.name,
-    content: msg.mes,
-  }));
-}
-
-function formatChatForPrompt(messages) {
-  return messages.map(m => `${m.name}: ${m.content}`).join('\n').substring(0, 3000);
 }
 
 // ============================================
@@ -577,7 +935,7 @@ async function generateWeather() {
   const result = await callSubAPI([
     {
       role: 'system',
-      content: '根据以下对话推断当前场景的环境。用一句话描述天气、光线、声音和气味。只输出描述。',
+      content: '根据以下对话推断当前场景的环境。用一段文字描述天气、光线、声音和气味。要有画面感和文学性。100字以内。',
     },
     {
       role: 'user',
@@ -599,12 +957,17 @@ async function generateWeather() {
 
 async function generateVibe() {
   const recent = getRecentChat(10);
-  if (recent.length < 3) return;
+  if (recent.length < 3) {
+    toastr.info('聊天消息太少');
+    return;
+  }
+
+  toastr.info('❤️ 正在分析氛围...');
 
   const result = await callSubAPI([
     {
       role: 'system',
-      content: '分析以下对话的情绪基调，用2-4个关键词概括（如：暧昧而紧张、轻松搞笑、沉重悲伤、温馨日常）。只输出关键词描述，不超过20字。',
+      content: '你是一位情感分析师/心理咨询师。请分析以下对话的情绪基调与人物心理状态。分两部分：1）当前氛围关键词（2-4个词）；2）简短的心理分析（角色可能在想什么、情绪张力在哪里）。总计不超过100字。',
     },
     {
       role: 'user',
@@ -616,46 +979,38 @@ async function generateVibe() {
     pluginData.vibe = result;
     saveChatData();
     renderIntel();
+    toastr.success('❤️ 氛围已更新！');
   }
 }
 
 // ============================================
-// 功能：平行宇宙
+// 功能：NPC 追踪
 // ============================================
 
-async function generateParallelUniverse(messageId) {
+async function generateNPCStatus(npcName) {
   const context = getContext();
-  const message = context.chat[messageId];
-  if (!message) return;
+  const charName = context.name2 || '角色';
+  const userName = context.name1 || '用户';
+  const recent = getRecentChat(20);
 
-  const btn = $(`.mes[mesid="${messageId}"] .bb-butterfly-btn`);
-  btn.text('⏳');
-  toastr.info('🦋 正在撕裂时空...');
+  toastr.info(`🔍 正在窥探 ${npcName}...`);
 
   const result = await callSubAPI([
     {
       role: 'system',
-      content: '如果在这个瞬间，角色做出了截然相反、极其离谱或遭遇大失败的选择，会发生什么？写一个50-80字的搞笑或暗黑平行宇宙分支。不要使用markdown。',
+      content: `${charName}和${userName}正在进行剧情。请用一小段文字（50-100字）描述此时不在场的NPC "${npcName}" 正在另一个地方干什么？要求：符合人物性格和当前世界观，有趣且具体，有画面感。`,
     },
     {
       role: 'user',
-      content: `原文："${message.mes.substring(0, 500)}"\n\n写出平行宇宙版本：`,
+      content: `当前场景对话：\n${formatChatForPrompt(recent)}\n\nNPC "${npcName}" 此刻在做什么？`,
     },
   ]);
 
-  btn.text('🦋');
-
   if (result) {
-    pluginData.parallel_universes.push({
-      id: `par-${Date.now()}`,
-      origin: message.mes.substring(0, 80),
-      content: result,
-      floor: messageId,
-      date: new Date().toLocaleString('zh-CN'),
-    });
+    pluginData.npc_status[npcName] = result;
     saveChatData();
-    renderParallel();
-    toastr.success('🦋 平行宇宙已生成！');
+    renderIntel();
+    toastr.success(`🔍 ${npcName} 的动态已更新！`);
   }
 }
 
@@ -674,18 +1029,17 @@ async function rollFate() {
   const charName = context.name2 || '角色';
   const userName = context.name1 || '用户';
   const recent = getRecentChat(10);
-  const chatSnippet = formatChatForPrompt(recent);
 
   const result = await callSubAPI([
     {
       role: 'system',
-      content: `你是一位TRPG的命运骰子。基于当前剧情场景，生成一个突发事件。要求：具有戏剧性和冲击力，可以是危险的、搞笑的、浪漫的或诡异的。用一两句话描述，不超过60字。不要使用markdown。
-示例："一颗流星突然坠落在附近的山丘上，大地震颤，远处传来不明生物的嚎叫。"
-示例："${charName}的口袋里突然掉出一封不属于自己的情书，字迹居然是${userName}的。"`,
+      content: `你是TRPG的命运骰子。基于当前场景生成一个突发事件。要求：有戏剧性冲击力，可以是危险/搞笑/浪漫/诡异的。一两句话，不超过60字。不要markdown。
+示例："一颗流星坠落在附近山丘，大地震颤，远处传来不明生物嚎叫。"
+示例："${charName}的口袋里掉出一封不属于自己的情书，字迹居然是${userName}的。"`,
     },
     {
       role: 'user',
-      content: `当前场景：\n${chatSnippet}\n\n请投掷命运骰子，生成一个突发事件：`,
+      content: `当前场景：\n${formatChatForPrompt(recent)}\n\n投掷命运骰子：`,
     },
   ]);
 
@@ -695,42 +1049,14 @@ async function rollFate() {
     pluginData.chaos_event = result;
     saveChatData();
     resultDiv.html(`<strong>🔥 命运已定：</strong><br>${escapeHtml(result)}`);
-    toastr.success('🃏 命运事件已生成！下次发送消息时 {{bb_chaos_event}} 将携带此事件');
+    toastr.success('🃏 命运事件已生成！通过 {{bb_chaos_event}} 注入预设');
   } else {
-    resultDiv.text('❌ 命运沉默了...（API调用失败，请检查设置）');
+    resultDiv.text('❌ 命运沉默了...（检查API设置）');
   }
 }
 
 // ============================================
-// 功能：NPC 状态追踪
-// ============================================
-
-async function generateNPCStatus(npcName) {
-  const context = getContext();
-  const charName = context.name2 || '角色';
-  const userName = context.name1 || '用户';
-  const recent = getRecentChat(20);
-
-  const result = await callSubAPI([
-    {
-      role: 'system',
-      content: `${charName}和${userName}正在进行剧情。请用一句话描述此时不在场的NPC "${npcName}" 正在另一个地方干什么？要求：符合人物性格和当前世界观，有趣且具体。不超过50字。`,
-    },
-    {
-      role: 'user',
-      content: `当前场景对话：\n${formatChatForPrompt(recent)}\n\nNPC "${npcName}" 此刻在做什么？`,
-    },
-  ]);
-
-  if (result) {
-    pluginData.npc_status[npcName] = result;
-    saveChatData();
-    renderIntel();
-  }
-}
-
-// ============================================
-// 消息计数器（触发自动生成）
+// 消息计数器
 // ============================================
 
 function incrementMessageCounter() {
@@ -738,7 +1064,7 @@ function incrementMessageCounter() {
   s.message_counter = (s.message_counter || 0) + 1;
 
   if (s.auto_diary_enabled && s.message_counter >= s.diary_trigger_count) {
-    console.log(`[骨与血] 📊 消息计数达到 ${s.message_counter}，触发自动生成...`);
+    console.log(`[骨与血] 📊 消息计数 ${s.message_counter}，触发自动生成`);
     s.message_counter = 0;
     saveSettings();
     autoGenerate();
@@ -749,9 +1075,9 @@ function incrementMessageCounter() {
 
 async function autoGenerate() {
   const s = getSettings();
-  if (!s.api_endpoint || !s.api_key) return;
+  if (!s.api_base || !s.api_key || !s.api_model) return;
 
-  console.log('[骨与血] ⚙️ 开始自动生成...');
+  console.log('[骨与血] ⚙️ 自动生成...');
   try {
     await Promise.allSettled([
       generateDiary(),
@@ -761,7 +1087,7 @@ async function autoGenerate() {
     ]);
     console.log('[骨与血] ✅ 自动生成完成');
   } catch (error) {
-    console.error('[骨与血] ❌ 自动生成出错:', error);
+    console.error('[骨与血] 自动生成出错:', error);
   }
 }
 
@@ -770,7 +1096,6 @@ async function autoGenerate() {
 // ============================================
 
 function registerAllMacros() {
-  // {{bb_diary}} - 最新日记
   registerMacroLike(
     /\{\{bb_diary\}\}/gi,
     () => {
@@ -781,7 +1106,6 @@ function registerAllMacros() {
     }
   );
 
-  // {{bb_summary}} - 最新阿卡夏总结
   registerMacroLike(
     /\{\{bb_summary\}\}/gi,
     () => {
@@ -792,13 +1116,11 @@ function registerAllMacros() {
     }
   );
 
-  // {{bb_weather}} - 当前环境
   registerMacroLike(
     /\{\{bb_weather\}\}/gi,
     () => pluginData.weather || '未知环境'
   );
 
-  // {{bb_chaos_event}} - 突发事件（一次性，读取后清空）
   registerMacroLike(
     /\{\{bb_chaos_event\}\}/gi,
     () => {
@@ -811,13 +1133,11 @@ function registerAllMacros() {
     }
   );
 
-  // {{bb_vibe}} - 氛围基调
   registerMacroLike(
     /\{\{bb_vibe\}\}/gi,
     () => pluginData.vibe || '平静'
   );
 
-  // {{bb_npc_status}} - 全部NPC动态
   registerMacroLike(
     /\{\{bb_npc_status\}\}/gi,
     () => {
@@ -843,7 +1163,6 @@ function getChatDataKey() {
 function saveChatData() {
   const key = getChatDataKey();
   if (!key) return;
-
   try {
     localStorage.setItem(key, JSON.stringify(pluginData));
   } catch (error) {
@@ -935,6 +1254,7 @@ function exportAsJSON() {
 
   const exportData = {
     export_time: new Date().toISOString(),
+    character: charName,
     records: pluginData.records_bone,
     diaries: pluginData.diary_blood,
     summaries: pluginData.summaries,
@@ -970,6 +1290,8 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+
 
 
 
