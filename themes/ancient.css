@@ -1,70 +1,102 @@
-/* 骨与血 — 古风主题 */
+/* ═══════════════════════════════════════════
+   🏮骨与血 — 古风主题 (Ancient)
+   金色调，衬线字体
+   ═══════════════════════════════════════════ */
+
 [data-bb-theme="ancient"] {
-  --bb-bg-primary: #1a1510;
-  --bb-bg-secondary: #231e15;
-  --bb-bg-tertiary: #2c2518;
-  --bb-bg-card: rgba(40, 32, 18, 0.85);
-  --bb-bg-input: rgba(35, 28, 15, 0.9);
-  --bb-bg-hover: rgba(180, 140, 60, 0.12);
-  --bb-bg-active: rgba(180, 140, 60, 0.2);
-  --bb-bg-glass: rgba(35, 28, 15, 0.7);
-  --bb-border: rgba(180, 140, 60, 0.25);
-  --bb-border-light: rgba(180, 140, 60, 0.12);
-  --bb-border-focus: rgba(200, 160, 80, 0.5);
-  --bb-text-primary: #e8dcc8;
-  --bb-text-secondary: #c8b898;
-  --bb-text-muted: #8a7a60;
-  --bb-text-accent: #d4a850;
-  --bb-accent: #b8942e;
-  --bb-accent-light: #d4b050;
-  --bb-accent-dark: #8a6e20;
-  --bb-accent-glow: rgba(184, 148, 46, 0.35);
+  --bb-primary: #d4a854;
+  --bb-primary-dark: #b8922e;
+  --bb-primary-light: #f0d890;
+  --bb-accent: #c87850;
+  --bb-accent-dark: #a85830;
+  --bb-accent-light: #e8a880;
+  --bb-bg-deep: #0c0a08;
+  --bb-bg-panel: #1a1610;
+  --bb-bg-card: #2a2418;
+  --bb-bg-card-hover: #3a3020;
+  --bb-bg-input: #221c12;
+  --bb-bg-secondary: #1e1a12;
+  --bb-text: #e0d8c8;
+  --bb-text-dim: #b8a888;
+  --bb-text-muted: #887858;
+  --bb-text-bright: #f8f0e0;
+  --bb-border: rgba(212, 168, 84, 0.18);
+  --bb-border-light: rgba(212, 168, 84, 0.08);
+  --bb-font: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
 }
 
-/* 古风特殊装饰 */
-[data-bb-theme="ancient"] #bb-main-panel {
-  background-image: 
-    radial-gradient(ellipse at top right, rgba(180,140,60,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom left, rgba(180,140,60,0.03) 0%, transparent 60%);
+[data-bb-theme="ancient"] #bb-main-panel,
+[data-bb-theme="ancient"] .bb-main-panel {
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  background: var(--bb-bg-panel);
+  border-color: rgba(212, 168, 84, 0.25);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 168, 84, 0.08);
 }
 
-[data-bb-theme="ancient"] .bb-panel-header {
-  background: linear-gradient(135deg, #231e15, #2c2518);
-  border-bottom: 1px solid rgba(180,140,60,0.2);
-}
-
-[data-bb-theme="ancient"] .bb-panel-header h2::after {
-  content: ' ─';color: var(--bb-text-muted);
-  font-weight: 300;
-}
-
-[data-bb-theme="ancient"] .bb-quote-item {
-  border-left-color: var(--bb-accent);
-  font-style: italic;
+[data-bb-theme="ancient"] .bb-trigger-btn,
+[data-bb-theme="ancient"] #bb-trigger-btn {
+  background: linear-gradient(135deg, #b8922e, #a85830);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(212, 168, 84, 0.25);
 }
 
 [data-bb-theme="ancient"] .bb-tab-btn.active {
-  background: linear-gradient(135deg, rgba(180,140,60,0.15), rgba(180,140,60,0.08));
+  background: linear-gradient(135deg, #b8922e, #a85830);
 }
 
-[data-bb-theme="ancient"] #bb-trigger-btn {
-  background: linear-gradient(135deg, #6a5020, #b8942e);
+[data-bb-theme="ancient"] .bb-big-btn {
+  background: linear-gradient(135deg, #b8922e, #a85830);
+  border-color: var(--bb-primary);
 }
 
 [data-bb-theme="ancient"] .bb-ooc-send-btn {
-  background: linear-gradient(135deg, #8a6e20, #b8942e);
+  background: linear-gradient(135deg, #b8922e, #a85830);
 }
 
-[data-bb-theme="ancient"] .bb-msg-user .bb-ooc-msg-bubble {
-  background: linear-gradient(135deg, #8a6e20, #b8942e);
+[data-bb-theme="ancient"] .bb-msg-user .bb-ooc-msg-bubble,
+[data-bb-theme="ancient"] .bb-bubble-user {
+  background: linear-gradient(135deg, #b8922e, #a85830);
 }
 
-[data-bb-theme="ancient"] .bb-home-listen .bb-home-avatar {
-  border-color: var(--bb-accent-dark);
-  box-shadow: 0 0 20px rgba(184,148,46,0.3);
+[data-bb-theme="ancient"] .bb-panel-header,
+[data-bb-theme="ancient"] .bb-ooc-header,
+[data-bb-theme="ancient"] .bb-bf-header {
+  background: linear-gradient(180deg, rgba(212, 168, 84, 0.08), transparent);
 }
 
-/* 古风字体微调 */
-[data-bb-theme="ancient"] {
-  --bb-font-main: 'Noto Serif SC', 'Source Han Serif','SimSun', serif;
+[data-bb-theme="ancient"] .bb-record-item,
+[data-bb-theme="ancient"] .bb-diary-item,
+[data-bb-theme="ancient"] .bb-npc-card,
+[data-bb-theme="ancient"] .bb-letter-card,
+[data-bb-theme="ancient"] .bb-anni-card {
+  border-color: rgba(212, 168, 84, 0.12);
 }
+
+[data-bb-theme="ancient"] .bb-record-item:hover {
+  border-color: var(--bb-primary);
+  box-shadow: 0 0 12px rgba(212, 168, 84, 0.1);
+}
+
+[data-bb-theme="ancient"] .bb-marquee-container {
+  background: rgba(212, 168, 84, 0.06);
+  border-color: rgba(212, 168, 84, 0.12);
+}
+
+[data-bb-theme="ancient"] .bb-achievement-popup {
+  border-color: var(--bb-primary);
+  box-shadow: 0 0 60px rgba(212, 168, 84, 0.2);
+}
+
+[data-bb-theme="ancient"] .bb-mobile-float {
+  background: linear-gradient(135deg, #b8922e, #a85830);
+}
+
+/*古风装饰性细节 */
+[data-bb-theme="ancient"] .bb-section-title {
+  border-bottom-style: double;
+  border-bottom-width: 3px;
+}
+
+[data-bb-theme="ancient"] .bb-letter-reply {
+  border-left-color: var(--bb-primary);
+}
+
