@@ -1319,96 +1319,296 @@
   .bb-gallery-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
   .bb-sticker-grid { grid-template-columns: repeat(3, 1fr); }
 }
-/* =============================================================修复：扩展设置面板样式隔离
+/* =============================================================
+   骨与血 —扩展设置面板样式 (#bb-settings-panel)
+   这些样式只作用于 SillyTavern 扩展栏中的设置面板，
+   与主面板 #bb-main-panel 完全隔离。
    ============================================================= */
 
-/*
- * SillyTavern 扩展设置面板的容器 class通常是你在 manifest.json 
- * 或 index.js 中 loadSettingsHTML 时指定的。
- * 假设你的设置面板容器 ID 为 #bone-blood-settings
- * 
- * 关键原则：所有插件自定义按钮样式必须限定在 #bb-main-panel 内
- */
+/*── 根容器 ── */
+.bb-settings-root {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  color: var(--SmartThemeBodyColor, #ccc);
+}
 
-/* --- 设置面板内的按钮：恢复正常样式 --- */
-#bone-blood-settings button,
-#bone-blood-settings .menu_button,
-#bone-blood-settings .btn-primary {
+.bb-settings-root *,
+.bb-settings-root *::before,
+.bb-settings-root *::after {
+  box-sizing: border-box;
+}
+
+/* ── 区块 ── */
+.bb-settings-root .bb-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bb-settings-root .bb-settings-section:last-child {
+  border-bottom: none;
+}
+
+/* ── 区块标题 ── */
+.bb-settings-root .bb-section-title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bb-primary, #c9a0dc);
+}
+
+/* ── 字段（label + input 垂直排列）── */
+.bb-settings-root .bb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.bb-settings-root .bb-field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--SmartThemeBodyColor, #aaa);
+  white-space: nowrap;
+}
+
+/* ── 行布局（水平排列）── */
+.bb-settings-root .bb-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+.bb-settings-root .bb-inline-label {
+  white-space: nowrap;
+  margin: 0;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ── 按钮组（水平排列，自动换行）── */
+.bb-settings-root .bb-btn-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── 所有按钮基础样式修复 ── */
+.bb-settings-root .menu_button,
+.bb-settings-root button.menu_button {
   display: inline-flex !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 4px !important;
   width: auto !important;
-  min-width: unset !important;
+  min-width: fit-content !important;
   max-width: none !important;
   height: auto !important;
-  min-height: 32px !important;
-  padding: 6px 16px !important;
-  font-size: 14px !important;
+  min-height: 30px !important;
+  padding: 5px 14px !important;
+  font-size: 13px !important;
   white-space: nowrap !important;
   writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
-  overflow: visible !important;
   line-height: 1.4 !important;
+  overflow: visible !important;
+  flex-shrink: 0 !important;
+  cursor: pointer;
 }
 
-/* 设置面板内的行布局 */
-#bone-blood-settings .flex-container,
-#bone-blood-settings .row {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  gap: 8px !important;
+/* ── 图标按钮（眼睛、编辑、删除等小按钮）── */
+.bb-settings-root .bb-icon-btn {
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  font-size: 16px !important;
 }
 
-/* 设置面板内的 inline-drawer（折叠区域）*/
-#bone-blood-settings .inline-drawer-content {
+/* ── 主要操作按钮 ── */
+.bb-settings-root .bb-btn-primary {
+  background: var(--bb-primary, #c9a0dc) !important;
+  color: #1a1a2e !important;
+  font-weight: 600 !important;
+}
+.bb-settings-root .bb-btn-primary:hover {
+  filter: brightness(1.15);
+}
+
+/* ── 危险按钮 ── */
+.bb-settings-root .bb-btn-danger {
+  color: #ff6b6b !important;
+  border-color: rgba(255,107,107,0.3) !important;
+}
+.bb-settings-root .bb-btn-danger:hover {
+  background: rgba(255,107,107,0.15) !important;
+}
+
+/* ── 输入框确保全宽 ── */
+.bb-settings-root .text_pole {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── 预设编辑器 ── */
+.bb-settings-root .bb-preset-editor {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.15);
+}
+.bb-settings-root .bb-preset-editor.bb-hidden {
+  display: none !important;
+}
+.bb-settings-root .bb-preset-editor h5 {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bb-primary, #c9a0dc);
 }
 
-/* 设置面板标签+输入框行 */
-#bone-blood-settings label {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 8px !important;
-  white-space: nowrap !important;
+/* ── 分割线 ── */
+.bb-settings-root .bb-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: 6px 0;
 }
 
-/* 设置面板输入框 */
-#bone-blood-settings input[type="text"],
-#bone-blood-settings input[type="number"],
-#bone-blood-settings input[type="password"],
-#bone-blood-settings textarea,
-#bone-blood-settings select {
-  width: 100% !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
+/* ── 提示文字 ── */
+.bb-settings-root .bb-hint-text {
+  font-size: 11px;
+  color: var(--bb-text-muted, #888);
+  margin: 00 4px 0;line-height: 1.5;
 }
 
-/* 设置面板内的提示词预设区域 */
-#bone-blood-settings .bb-prompt-presets,
-#bone-blood-settings .bb-settings-section {
-  width: 100% !important;
-  overflow-x: hidden !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+/* ── 布局选择器（主页布局三选一）── */
+.bb-settings-root .bb-layout-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* 确保眼睛图标按钮（显示/隐藏密码）保持正常 */
-#bone-blood-settings .btn-toggle-password,
-#bone-blood-settings button[data-action="toggle-password"] {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  padding: 4px !important;
-  flex-shrink: 0 !important;
+.bb-settings-root .bb-layout-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
 }
+.bb-settings-root .bb-layout-option:hover {
+  border-color: var(--bb-primary, #c9a0dc);
+  background: rgba(201,160,220,0.08);
+}
+.bb-settings-root .bb-layout-option.active {
+  border-color: var(--bb-primary, #c9a0dc);
+  background: rgba(201,160,220,0.15);
+}
+.bb-settings-root .bb-layout-icon {
+  font-size: 24px;
+}
+
+/* ── CSS模板按钮组 ── */
+.bb-settings-root .bb-css-templates {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.bb-settings-root .bb-css-tpl-btn {
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  min-height: 26px !important;
+}
+
+/* ── CSS编辑器 ── */
+.bb-settings-root .bb-css-editor {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* ── AI帮助折叠区── */
+.bb-settings-root .bb-css-ai-help {
+  margin-top: 10px;
+}
+.bb-settings-root .bb-details-summary {
+  font-size: 12px;
+  color: var(--bb-primary, #c9a0dc);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.bb-settings-root .bb-css-prompt-preview {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 11px;
+  color: var(--bb-text-dim, #999);
+  max-height: 200px;
+  overflow-y: auto;
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+/* ── 关于 ── */
+.bb-settings-root .bb-about {
+  padding: 12px 0 4px;
+}
+
+/* ── checkbox行── */
+.bb-settings-root .checkbox_label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;font-size: 13px;
+}
+
+/* =============================================================
+   移动端适配 — 设置面板
+   ============================================================= */
+@media screen and (max-width: 768px) {
+  .bb-settings-root .bb-btn-group {
+    gap: 4px;
+  }
+  .bb-settings-root .menu_button,
+  .bb-settings-root button.menu_button {
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+  }
+  .bb-settings-root .bb-layout-option {
+    padding: 8px 10px;min-width: 60px;
+  }
+}
+
 
 /* ============================================================
    END OF style.css —骨与血(Bone & Blood) v0.7.0
