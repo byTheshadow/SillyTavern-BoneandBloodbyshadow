@@ -3765,11 +3765,123 @@ function injectDynamicCSS() {
       100% { transform: translateX(-100%); }
     }
     @keyframes bb-float-pulse {
-      0%, 100% { 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 0 rgba(102,126,234,0.5); 
+      0%, 100% { box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 0 rgba(102,126,234,0.5); }
+      50% { box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 12px rgba(102,126,234,0); }
+    }
+
+    /*═══ 移动端适配 ═══ */
+    @media (max-width: 768px) {
+      #bb-main-panel,
+      #bb-main-panel.bb-main-panel,
+      #bb-main-panel.bb-style-gothic,
+      #bb-main-panel.bb-style-ancient,
+      #bb-main-panel.bb-style-modern {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        height: 85vh !important;
+        max-height: 85vh !important;
+        min-width: unset !important;
+        max-width: unset !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        border-radius: 20px 20px 0 0 !important;
+        z-index: 99999 !important;
+        flex-direction: column !important;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.5) !important;
+        overflow: hidden !important;
       }
-      50% { 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 12px rgba(102,126,234,0); 
+
+      #bb-main-panel::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: rgba(255,255,255,0.4);
+        border-radius: 2px;
+        margin: 8px auto 4px;flex-shrink: 0;
+      }
+
+      #bb-main-panel .bb-panel-header {
+        flex-shrink: 0 !important;
+        padding: 6px 12px !important;
+        border-radius: 0 !important;
+      }
+
+      #bb-main-panel .bb-tab-nav {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 6px 4px !important;
+        gap: 4px !important;
+        flex-shrink: 0 !important;
+      }
+
+      #bb-main-panel .bb-tab-nav::-webkit-scrollbar {
+        height: 2px !important;
+      }
+
+      #bb-main-panel .bb-tab-btn {
+        flex: 0 0 auto !important;
+        min-width: 70px !important;
+        padding: 5px 10px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;}
+
+      #bb-main-panel .bb-tab-content {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding: 10px !important;
+        -webkit-overflow-scrolling: touch !important;
+        min-height: 0 !important;
+      }
+
+      #bb-main-panel .bb-music-bar {
+        padding: 4px 8px !important;
+        flex-shrink: 0 !important;
+      }
+
+      .bb-mobile-float {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 22px !important;
+        z-index: 99998 !important;
+      }
+
+      #bb-ooc-win,
+      #bb-bf-win {
+        position: fixed !important;
+        top: 5vh !important;
+        left: 3vw !important;
+        width: 94vw !important;
+        height: 85vh !important;
+        max-height: 85vh !important;
+        z-index: 100000 !important;
+      }
+
+      #bb-main-panel .bb-input,
+      #bb-main-panel .bb-textarea,
+      #bb-main-panel select {
+        font-size: 16px !important;
+      }
+
+      #bb-main-panel .bb-btn,
+      #bb-main-panel .bb-sm-btn,
+      #bb-main-panel .bb-big-btn {
+        min-height: 40px !important;
+        padding: 8px 14px !important;
+      }
+
+      #bb-main-panel .bb-gallery-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px !important;
       }
     }
   `;
@@ -3780,14 +3892,6 @@ function injectDynamicCSS() {
   document.head.appendChild(styleEl);
 }
 
-
-function buildAndBindMainPanel() {
-  const panel = document.getElementById('bb-main-panel');
-  if (!panel) return;
-  panel.innerHTML = buildMainPanelHTML();
-  bindMainPanelEvents(panel);
-  renderAll();
-}
 
 // ══════════════════════════════════════
 // 主初始化函数
