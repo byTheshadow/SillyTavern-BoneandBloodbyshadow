@@ -1251,13 +1251,9 @@
 /* ═══════════════════════════════════════════
    移动端适配
    ═══════════════════════════════════════════ */
-
-/* ========================================
-   移动端适配 - 完全修复版本
-======================================== */
 @media (max-width: 768px) {
   /* 1. 强制重置主面板所有定位 */
-  .bb-main-panel {
+  #bb-main-panel {
     position: fixed !important;
     top: auto !important;
     bottom: 0 !important;
@@ -1270,21 +1266,21 @@
     padding: 0 !important;
     transform: none !important;
     border-radius: 20px 20px 0 0 !important;
-    z-index: 99999 !important; /* 提升到最高层级 */
+    z-index: 99999 !important;
     display: flex !important;
     flex-direction: column !important;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
   }
 
   /* 2. 移除所有可能的动画干扰 */
-  .bb-main-panel * {
+  #bb-main-panel * {
     animation: none !important;
     transition: none !important;
   }
 
   /* 3. 拖动指示器 */
-  .bb-main-panel::before {
-    content: '';
+  #bb-main-panel::before {
+    content: ' ';
     display: block;
     width: 40px;
     height: 4px;
@@ -1394,7 +1390,7 @@
   }
 
   /* 10. 强制显示修复 */
-  .bb-main-panel:not([style*="display: none"]) {
+  #bb-main-panel[style] {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -1408,7 +1404,7 @@
   .bb-input,
   .bb-textarea,
   .bb-select {
-    font-size: 16px !important; /* 防止iOS自动缩放 */
+    font-size: 16px !important;
     padding: 8px !important;
   }
 
@@ -1420,7 +1416,7 @@
   .bb-btn,
   .bb-btn-primary,
   .bb-btn-secondary {
-    min-height: 44px !important; /* 触摸友好 */
+    min-height: 44px !important;
     padding: 10px 16px !important;
     font-size: 14px !important;
   }
@@ -1440,6 +1436,7 @@
     height: 150px !important;
   }
 }
+
 
 /* =============================================================
    骨与血 —扩展设置面板样式 (#bb-settings-panel)
