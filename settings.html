@@ -396,7 +396,7 @@
           </div></div>
       </div>
 
-      <!-- ═══ 2. 副API配置 ═══ -->
+           <!--═══ 2. 副API配置 ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">🔌 副API配置</span>
@@ -411,14 +411,35 @@
             <label class="bbs-label">API Key</label>
             <div class="bbs-row">
               <input type="password" id="bb-api-key" placeholder="sk-..." />
-              <button class="bbs-btn bbs-btn-sm" id="bb-toggle-key-vis" style="flex:0;">👁</button>
+              <button class="bbs-btn bbs-btn-sm" id="bb-toggle-key-vis" style="flex:0 0 auto;">👁</button>
             </div>
           </div>
-          <div class="bbs-field">
-            <label class="bbs-label">模型名称</label>
-            <input type="text" id="bb-api-model" placeholder="gpt-4o-mini" />
+
+          <!-- 连接按钮 + 状态 -->
+          <div class="bbs-btn-row" style="margin-bottom:8px;">
+            <button class="bbs-btn bbs-btn-primary" id="bb-fetch-models">🔗 连接并获取模型</button>
+            <button class="bbs-btn" id="bb-test-api">🧪 测试发送</button>
+          </div><div id="bb-api-status" style="font-size:12px;min-height:20px;"></div>
+
+          <!-- 模型选择（下拉框） -->
+          <div class="bbs-field" style="margin-top:8px;">
+            <label class="bbs-label">模型</label>
+            <div class="bbs-row">
+              <select id="bb-api-model" style="flex:1;">
+                <option value="">— 请先连接API获取模型列表 —</option>
+              </select>
+              <button class="bbs-btn bbs-btn-sm" id="bb-refresh-models" style="flex:0 0 auto;" title="刷新模型列表">🔄</button>
+            </div>
+            <span class="bbs-hint">连接API后自动获取可用模型，也可手动输入</span>
+            <!-- 手动输入备用-->
+            <div id="bb-model-manual-row" style="margin-top:6px;display:none;">
+              <div class="bbs-row">
+                <input type="text" id="bb-api-model-manual" placeholder="手动输入模型名称，如 gpt-4o-mini" />
+                <button class="bbs-btn bbs-btn-sm" id="bb-model-manual-apply" style="flex:0 0 auto;">✅</button>
+              </div>
+            </div>
+            <button class="bbs-btn bbs-btn-sm" id="bb-model-manual-toggle" style="margin-top:4px;font-size:11px;color:var(--bbs-text-dim);">📝 手动输入模型名</button>
           </div>
-          <button class="bbs-btn bbs-btn-primary" id="bb-test-api">🔗 测试连接</button>
         </div>
       </div>
 
