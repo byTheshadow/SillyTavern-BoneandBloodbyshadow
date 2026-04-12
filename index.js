@@ -286,6 +286,7 @@ const DEFAULT_SETTINGS = {
   poster_font_url: '',
   poster_font_name: 'Noto Serif SC',
   poster_text_color: '#ffffff',
+  available_models: [],
 };
 
 const PET_TYPES = [
