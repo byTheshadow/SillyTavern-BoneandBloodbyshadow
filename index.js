@@ -3492,6 +3492,7 @@ function renderAll() {
   updateCharInfo();
   updateMarquee();
   applyHomeBackground();
+  applyCustomFont();
 }
 
 // ── 主面板事件绑定 ──
