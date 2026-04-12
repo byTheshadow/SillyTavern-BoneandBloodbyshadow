@@ -29,6 +29,7 @@ const STYLE_PRESETS = {
     world: '📰 江湖传闻', achievements: '🎖️ 功绩榜',
     gallery: '🎨 丹青阁', couple: '🌙鸳鸯谱',
   },
+
   gothic: {
     home: '🕯️ 庭院', scrapbook: '🦴骸骨之语', diary: '🩸 血迹手记',
     npc: '👻 幽影名录', weather: '⚰️ 天气', vibe: '🕷️ 血脉共鸣',
@@ -36,7 +37,16 @@ const STYLE_PRESETS = {
     world: '📡亡者电台', achievements: '💀 死亡勋章',
     gallery: '🖤暗影画廊', couple: '🥀 血契空间',
   },
+  monochrome: {
+    home: '🏠 主页', scrapbook: '📀唱片机', diary: '📓 日记本',
+    npc: '👥 情报站', weather: '🌫️ 环境雷达', vibe: '🤍 氛围心电图',
+    parallel: '🔲 平行宇宙', fate: '🎲 命运盘', ooc: '💬 Burning Star',
+    world: '📡 世界频段', achievements: '🏅 成就殿堂',
+    gallery: '🖼️ 画廊', couple: '🤍 情侣空间',},
 };
+
+};
+
 
 const TAB_KEYS = ['home','scrapbook','diary','npc','weather','vibe','parallel','fate','ooc','world','achievements','gallery','couple'];
 
@@ -4162,125 +4172,130 @@ function collectMessage(messageId) {
   saveChatData(); renderScrapbook(); toastr.success(`🌟 已收藏 #${messageId}`); checkAchievements();
 }
 
-//──宏注册（使用 registerMacroLike API） ──
-
-// 存储所有宏的取消注册函数，便于清理
-const bbMacroUnregisters = [];
+//──宏注册（通过事件监听实现宏替换） ──
 
 function registerAllMacros() {
-  // 先清理旧的注册
-  bbMacroUnregisters.forEach(u => {
-    try { u.unregister(); } catch(e) {}
-  });
-  bbMacroUnregisters.length = 0;
-
+  // 在SillyTavern标准扩展环境中，registerMacroLike 和 MacrosParser 均不可用
+  // 使用 eventSource 事件监听方式，在AI生成前替换宏文本
+  
   try {
-    // 检查 registerMacroLike 是否可用
-    if (typeof registerMacroLike === 'function') {
-      
-      // {{bb_diary}} — 最新日记内容
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_diary\}\}/gi, (context) => {
-          if (!pluginData || pluginData.diary_blood.length === 0) return '(暂无日记)';
-          return pluginData.diary_blood[pluginData.diary_blood.length - 1].content;
-        })
-      );
-
-      // {{bb_summary}} — 最新总结
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_summary\}\}/gi, (context) => {
-          if (!pluginData || pluginData.summaries.length === 0) return '(暂无总结)';
-          return pluginData.summaries[pluginData.summaries.length - 1].content;
-        })
-      );
-
-      // {{bb_weather}} — 环境信息
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_weather\}\}/gi, (context) => {
-          return pluginData?.weather || '(环境未知)';
-        })
-      );
-
-      // {{bb_chaos_event}} — 命运事件（读取后自动清空，一次性使用）
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_chaos_event\}\}/gi, (context) => {
-          if (!pluginData) return '(无事件)';
-          const evt = pluginData.chaos_event;
-          if (!evt) return '(无事件)';
-          pluginData.chaos_event = '';
-          saveChatData();
-          return evt;
-        })
-      );
-
-      // {{bb_vibe}} — 氛围信息
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_vibe\}\}/gi, (context) => {
-          return pluginData?.vibe || '(氛围未知)';
-        })
-      );
-
-      // {{bb_npc_status}} — 所有NPC状态
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_npc_status\}\}/gi, (context) => {
-          if (!pluginData) return '(无NPC追踪)';
-          const names = Object.keys(pluginData.npc_status);
-          if (names.length === 0) return '(无NPC追踪)';
-          return names.map(n => `【${n}】${pluginData.npc_status[n].description || '未知'}`).join('\n');
-        })
-      );
-
-      // {{bb_npc:NPC名字}} — 指定NPC状态
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_npc:(.+?)\}\}/gi, (context, substring, npcName) => {
-          if (!pluginData || !npcName) return '(未知NPC)';
-          const info = pluginData.npc_status[npcName.trim()];
-          if (!info) return `(未追踪NPC: ${npcName.trim()})`;
-          return info.description || '未知';
-        })
-      );
-
-      // {{bb_records_count}} — 语录收藏数量
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_records_count\}\}/gi, (context) => {
-          return String(pluginData?.records_bone?.length || 0);
-        })
-      );
-
-      // {{bb_diary_count}} — 日记数量
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_diary_count\}\}/gi, (context) => {
-          return String(pluginData?.diary_blood?.length || 0);
-        })
-      );
-
-      // {{bb_world_feed}} — 最新世界频段消息
-      bbMacroUnregisters.push(
-        registerMacroLike(/\{\{bb_world_feed\}\}/gi, (context) => {
-          if (!pluginData || pluginData.world_feed.length === 0) return '(暂无世界频段消息)';
-          const latest = pluginData.world_feed.slice(-3);
-          return latest.map(f => f.content).join('\n');
-        })
-      );
-
-      console.log('[骨与血]📝 10个宏已通过 registerMacroLike 注册');
-
-    } else if (typeof MacrosParser !== 'undefined' && MacrosParser.registerMacro) {
-      //兼容旧版API（fallback）
-      MacrosParser.registerMacro('bb_diary', () => pluginData.diary_blood.length === 0 ? '(暂无日记)' : pluginData.diary_blood[pluginData.diary_blood.length - 1].content);
-      MacrosParser.registerMacro('bb_summary', () => pluginData.summaries.length === 0 ? '(暂无总结)' : pluginData.summaries[pluginData.summaries.length - 1].content);
-      MacrosParser.registerMacro('bb_weather', () => pluginData.weather || '(环境未知)');
-      MacrosParser.registerMacro('bb_chaos_event', () => { const evt = pluginData.chaos_event; if (!evt) return '(无事件)'; pluginData.chaos_event = ''; saveChatData(); return evt; });
-      MacrosParser.registerMacro('bb_vibe', () => pluginData.vibe || '(氛围未知)');
-      MacrosParser.registerMacro('bb_npc_status', () => { const names = Object.keys(pluginData.npc_status); if (names.length === 0) return '(无NPC追踪)'; return names.map(n => `【${n}】${pluginData.npc_status[n].description || '未知'}`).join('\n'); });
-      console.log('[骨与血] 📝 6个宏已通过 MacrosParser 注册（旧版兼容）');
-
-    } else {
-      console.warn('[骨与血] ⚠️ 未找到宏注册系统（registerMacroLike 和 MacrosParser 均不可用）');
+    // 方式1: 通过 GENERATE_AFTER_COMBINE_PROMPTS 事件替换 prompt 中的宏
+    if (eventSource && event_types.GENERATE_AFTER_COMBINE_PROMPTS) {
+      eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, (data) => {
+        if (!data || !data.prompt || !pluginData) return;
+        data.prompt = replaceBBMacros(data.prompt);});
+      console.log('[骨与血]📝 宏替换已通过 GENERATE_AFTER_COMBINE_PROMPTS 事件注册');
+    }
+    
+    // 方式2: 通过 CHAT_COMPLETION_PROMPT_READY 事件替换 chat messages中的宏
+    if (eventSource && event_types.CHAT_COMPLETION_PROMPT_READY) {
+      eventSource.on(event_types.CHAT_COMPLETION_PROMPT_READY, (eventData) => {
+        if (!eventData || !eventData.chat || !pluginData) return;
+        eventData.chat.forEach(msg => {
+          if (msg.content && typeof msg.content === 'string') {
+            msg.content = replaceBBMacros(msg.content);
+          }
+        });
+      });
+      console.log('[骨与血] 📝 宏替换已通过 CHAT_COMPLETION_PROMPT_READY 事件注册');
+    }
+    
+    // 方式3: 通过 GENERATE_AFTER_DATA事件替换（覆盖更多场景）
+    if (eventSource && event_types.GENERATE_AFTER_DATA) {
+      eventSource.on(event_types.GENERATE_AFTER_DATA, (generateData) => {
+        if (!generateData || !generateData.prompt || !pluginData) return;
+        if (Array.isArray(generateData.prompt)) {
+          generateData.prompt.forEach(msg => {
+            if (msg.content && typeof msg.content === 'string') {
+              msg.content = replaceBBMacros(msg.content);
+            }
+          });
+        }
+      });
+      console.log('[骨与血] 📝 宏替换已通过 GENERATE_AFTER_DATA 事件注册');
+    }
+    
+    if (!eventSource) {
+      console.warn('[骨与血] ⚠️ eventSource 不可用，宏替换未注册');
     }
   } catch (e) {
     console.error('[骨与血] 宏注册失败:', e);
   }
+}
+
+/**
+ * 替换文本中的所有骨与血宏
+ * @param {string} text - 要替换的文本
+ * @returns {string} 替换后的文本
+ */
+function replaceBBMacros(text) {
+  if (!text || typeof text !== 'string' || !pluginData) return text;
+  
+  // 检查是否包含任何 bb_宏，避免无谓的替换操作
+  if (!text.includes('{{bb_')) return text;
+  
+  // {{bb_diary}} — 最新日记
+  text = text.replace(/\{\{bb_diary\}\}/gi, () => {
+    if (!pluginData.diary_blood || pluginData.diary_blood.length === 0) return '(暂无日记)';
+    return pluginData.diary_blood[pluginData.diary_blood.length - 1].content;
+  });
+  
+  // {{bb_summary}} — 最新总结
+  text = text.replace(/\{\{bb_summary\}\}/gi, () => {
+    if (!pluginData.summaries || pluginData.summaries.length === 0) return '(暂无总结)';
+    return pluginData.summaries[pluginData.summaries.length - 1].content;
+  });
+  
+  // {{bb_weather}} — 环境
+  text = text.replace(/\{\{bb_weather\}\}/gi, () => {
+    return pluginData.weather || '(环境未知)';
+  });
+  
+  // {{bb_vibe}} — 氛围
+  text = text.replace(/\{\{bb_vibe\}\}/gi, () => {
+    return pluginData.vibe || '(氛围未知)';
+  });
+  
+  // {{bb_chaos_event}} — 命运事件（一次性，读取后清空）
+  text = text.replace(/\{\{bb_chaos_event\}\}/gi, () => {
+    const evt = pluginData.chaos_event;
+    if (!evt) return '(无事件)';
+    pluginData.chaos_event = '';
+    saveChatData();
+    return evt;
+  });
+  
+  // {{bb_npc_status}} — 所有NPC状态
+  text = text.replace(/\{\{bb_npc_status\}\}/gi, () => {
+    const names = Object.keys(pluginData.npc_status || {});
+    if (names.length === 0) return '(无NPC追踪)';
+    return names.map(n => `【${n}】${pluginData.npc_status[n].description || '未知'}`).join('\n');
+  });
+  
+  // {{bb_npc:角色名}} — 指定NPC状态
+  text = text.replace(/\{\{bb_npc:(.+?)\}\}/gi, (match, npcName) => {
+    const info = (pluginData.npc_status || {})[npcName.trim()];
+    if (!info) return `(未追踪NPC: ${npcName.trim()})`;
+    return info.description || '未知';
+  });
+  
+  // {{bb_records_count}} — 语录数量
+  text = text.replace(/\{\{bb_records_count\}\}/gi, () => {
+    return String(pluginData.records_bone?.length || 0);
+  });
+  
+  // {{bb_diary_count}} — 日记数量
+  text = text.replace(/\{\{bb_diary_count\}\}/gi, () => {
+    return String(pluginData.diary_blood?.length || 0);
+  });
+  
+  // {{bb_world_feed}} — 最近3条世界频段
+  text = text.replace(/\{\{bb_world_feed\}\}/gi, () => {
+    if (!pluginData.world_feed || pluginData.world_feed.length === 0) return '(暂无世界频段消息)';
+    return pluginData.world_feed.slice(-3).map(f => f.content).join('\n');
+  });
+  
+  return text;
 }
 
 //── 动态CSS注入 ──
