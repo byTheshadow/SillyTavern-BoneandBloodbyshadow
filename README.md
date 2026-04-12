@@ -1,9 +1,9 @@
 # SillyTavern-BoneandBloodbyshadow
 ## 🦴 骨与血 (Bone & Blood)
 
-**SillyTavern 沉浸式风味增强与记忆手账插件**
+**SillyTavern 沉浸式增强趣味的小插件**
 
-> 不做沉重的记忆负担，只做惊艳的灵魂切片。让AI拥有情感的"血"，为玩家留下回忆的"骨"。
+> 在等待AI回复的时候做点其他事情吧！
 
 ## ✨ 功能一览
 
