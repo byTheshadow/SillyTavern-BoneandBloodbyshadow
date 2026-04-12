@@ -1,414 +1,706 @@
-<!--============================================================骨与血 (Bone & Blood) v0.7.0 — settings.html
-    扩展设置面板 — 由index.js 通过 fetch 注入到 #extensions_settings22026@SHADOW<安息之影>
-    ============================================================ -->
+<!--═══════════════════════════════════════════🦴 骨与血 (Bone & Blood) v7.1— 设置面板
+     暗黑风格 · 支持主题切换═══════════════════════════════════════════ -->
 
-<div id="bb-settings-panel" class="bb-settings-root">
+<style>
+/*── Settings面板暗黑主题 ── */
+#bb-settings-panel {
+  --bbs-bg: #0d0d0d;
+  --bbs-bg-section: #141414;
+  --bbs-bg-input: #1a1a1a;
+  --bbs-bg-hover: #222;
+  --bbs-border: rgba(255,255,255,0.06);
+  --bbs-border-focus: rgba(255,255,255,0.2);
+  --bbs-text: #ccc;
+  --bbs-text-dim: #888;
+  --bbs-text-bright: #eee;
+  --bbs-accent: #c9a0dc;
+  --bbs-accent-dark: #a374c0;
+  --bbs-danger: #e87878;
+  --bbs-success: #4caf50;
+  --bbs-radius: 8px;
+}
+
+#bb-settings-panel .inline-drawer-content {
+  background: var(--bbs-bg) !important;
+  color: var(--bbs-text) !important;
+  padding: 0!important;
+}
+
+#bb-settings-panel .inline-drawer-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+  border-bottom: 1px solid var(--bbs-border) !important;padding: 12px 16px !important;
+}
+
+#bb-settings-panel .inline-drawer-header b {
+  color: var(--bbs-accent) !important;
+  font-size: 15px !important;
+}
+
+/*区块样式 */
+.bbs-section {
+  background: var(--bbs-bg-section);
+  border: 1px solid var(--bbs-border);
+  border-radius: var(--bbs-radius);
+  margin: 8px;
+  overflow: hidden;
+}
+
+.bbs-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background0.15s;
+}
+
+.bbs-section-header:hover {
+  background: var(--bbs-bg-hover);
+}
+
+.bbs-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bbs-text-bright);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bbs-section-arrow {
+  font-size: 11px;
+  color: var(--bbs-text-dim);
+  transition: transform 0.2s;
+}
+
+.bbs-section.open .bbs-section-arrow {
+  transform: rotate(180deg);
+}
+
+.bbs-section-body {
+  display: none;
+  padding: 12px 14px;
+  border-top: 1px solid var(--bbs-border);
+}
+
+.bbs-section.open .bbs-section-body {
+  display: block;
+}
+
+/* 表单元素 */
+.bbs-field {
+  margin-bottom: 10px;
+}
+
+.bbs-label {
+  display: block;
+  font-size: 12px;
+  color: var(--bbs-text-dim);
+  margin-bottom: 4px;font-weight: 500;
+}
+
+.bbs-hint {
+  font-size: 11px;
+  color: var(--bbs-text-dim);
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+#bb-settings-panel input[type="text"],
+#bb-settings-panel input[type="password"],
+#bb-settings-panel input[type="number"],
+#bb-settings-panel input[type="url"],
+#bb-settings-panel select,
+#bb-settings-panel textarea {
+  width: 100%;
+  background: var(--bbs-bg-input) !important;
+  border: 1px solid var(--bbs-border) !important;
+  border-radius: 6px !important;
+  color: var(--bbs-text) !important;
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+  transition: border-color 0.15s !important;
+  box-sizing: border-box;
+}
+
+#bb-settings-panel input:focus,
+#bb-settings-panel select:focus,
+#bb-settings-panel textarea:focus {
+  border-color: var(--bbs-border-focus) !important;
+  outline: none !important;
+}
+
+#bb-settings-panel textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* 按钮 */
+.bbs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--bbs-border);
+  background: var(--bbs-bg-input);
+  color: var(--bbs-text);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.bbs-btn:hover {
+  background: var(--bbs-bg-hover);
+  border-color: var(--bbs-border-focus);
+}
+
+.bbs-btn-primary {
+  background: var(--bbs-accent-dark);
+  border-color: var(--bbs-accent);color: #fff;
+}
+
+.bbs-btn-primary:hover {
+  background: var(--bbs-accent);
+}
+
+.bbs-btn-danger {
+  border-color: rgba(232,120,120,0.3);
+  color: var(--bbs-danger);
+}
+
+.bbs-btn-danger:hover {
+  background: rgba(232,120,120,0.1);
+}
+
+.bbs-btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.bbs-btn-sm {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* 复选框 */
+.bbs-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;font-size: 13px;
+  color: var(--bbs-text);
+  padding: 4px 0;
+}
+
+.bbs-checkbox input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  accent-color: var(--bbs-accent);
+}
+
+/* 行内两列 */
+.bbs-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.bbs-row > * {
+  flex: 1;
+}
+
+/* 分割线 */
+.bbs-divider {
+  border: none;
+  border-top: 1px solid var(--bbs-border);
+  margin: 12px 0;
+}
+
+/* 版本信息 */
+.bbs-version {
+  text-align: center;
+  padding: 8px;
+  font-size: 11px;
+  color: var(--bbs-text-dim);
+  border-top: 1px solid var(--bbs-border);margin: 8px;
+}
+
+/* 预设编辑器 */
+#bb-preset-editor,
+#bb-ooc-preset-editor {
+  display: none;
+  padding: 12px;
+  border-top: 1px solid var(--bbs-border);
+  background: rgba(0,0,0,0.2);
+}
+
+/* 布局选项卡 */
+.bb-layout-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--bbs-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--bbs-text-dim);
+  background: var(--bbs-bg-input);
+  transition: all 0.15s;
+}
+
+.bb-layout-option:hover {
+  border-color: var(--bbs-border-focus);
+}
+
+.bb-layout-option.active {
+  border-color: var(--bbs-accent);
+  color: var(--bbs-accent);
+  background: rgba(201,160,220,0.08);
+}
+
+/* CSS模板按钮 */
+.bb-css-tpl-btn {
+  display: inline-flex;
+  padding: 4px 8px;
+  border: 1px solid var(--bbs-border);
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  background: var(--bbs-bg-input);
+  color: var(--bbs-text-dim);
+  transition: all 0.15s;
+}
+
+.bb-css-tpl-btn:hover {
+  border-color: var(--bbs-accent);
+  color: var(--bbs-accent);
+}
+
+/*歌单列表 */
+#bb-music-playlist-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--bbs-border);
+  border-radius: 6px;
+  background: var(--bbs-bg-input);
+}
+
+/*滚动条 */
+#bb-settings-panel ::-webkit-scrollbar {
+  width: 4px;
+}
+#bb-settings-panel ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
+}
+
+/* 主题切换动画 */
+#bb-settings-panel {
+  transition: all 0.3s ease;
+}
+
+/*── 主题变体 ── */
+#bb-settings-panel.bbs-theme-purple {
+  --bbs-bg: #0e0a14;
+  --bbs-bg-section: #1a1228;
+  --bbs-bg-input: #241a36;
+  --bbs-bg-hover: #2e2240;
+  --bbs-border: rgba(201,160,220,0.12);
+  --bbs-border-focus: rgba(201,160,220,0.3);
+  --bbs-accent: #c9a0dc;
+  --bbs-accent-dark: #a374c0;
+}
+
+#bb-settings-panel.bbs-theme-gothic {
+  --bbs-bg: #0a0808;
+  --bbs-bg-section: #151010;
+  --bbs-bg-input: #1a1212;
+  --bbs-bg-hover: #251a1a;
+  --bbs-border: rgba(200,80,80,0.1);
+  --bbs-border-focus: rgba(200,80,80,0.25);
+  --bbs-accent: #c85050;
+  --bbs-accent-dark: #a03030;
+}
+
+#bb-settings-panel.bbs-theme-ocean {
+  --bbs-bg: #080e14;
+  --bbs-bg-section: #0e1820;
+  --bbs-bg-input: #122030;
+  --bbs-bg-hover: #1a2a3a;
+  --bbs-border: rgba(100,180,220,0.1);
+  --bbs-border-focus: rgba(100,180,220,0.25);
+  --bbs-accent: #64b4dc;
+  --bbs-accent-dark: #4090b0;
+}
+
+#bb-settings-panel.bbs-theme-monochrome {
+  --bbs-bg: #0a0a0a;
+  --bbs-bg-section: #141414;
+  --bbs-bg-input: #1a1a1a;
+  --bbs-bg-hover: #222;
+  --bbs-border: rgba(255,255,255,0.06);
+  --bbs-border-focus: rgba(255,255,255,0.2);
+  --bbs-accent: #999;
+  --bbs-accent-dark: #666;
+}
+</style>
+
+<div id="bb-settings-panel">
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
       <b>🦴 骨与血 Bone & Blood</b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
-    <div class="inline-drawer-content" style="display:flex; flex-direction:column; gap:2px;"><!--── 基础开关 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">⚙️ 基础设置</h4>
-        <label class="checkbox_label">
-          <input type="checkbox" id="bb-enabled" />
-          <span>启用插件</span>
-        </label>
-        <label class="checkbox_label">
-          <input type="checkbox" id="bb-auto-diary" />
-          <span>自动生成日记</span>
-        </label>
-        <div class="bb-row">
-          <label class="bb-inline-label">触发条数：</label>
-          <input type="number" id="bb-diary-trigger" class="text_pole" min="1" max="100" value="10" style="width:80px;" />
-        </div></div>
+    <div class="inline-drawer-content">
 
-      <!--── 副API配置 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">🔗 副API配置</h4>
-        <div class="bb-field">
-          <label class="bb-field-label">API Base URL</label>
-          <input type="text" id="bb-api-base" class="text_pole" placeholder="https://api.example.com/v1" />
-        </div>
-        <div class="bb-field">
-          <label class="bb-field-label">API Key</label>
-          <div class="bb-row">
-            <input type="password" id="bb-api-key" class="text_pole" placeholder="sk-..." style="flex:1;min-width:0;" />
-            <button id="bb-toggle-key-vis" class="menu_button bb-icon-btn" type="button" title="显示/隐藏">👁</button>
-          </div>
-        </div>
-        <div class="bb-field">
-          <label class="bb-field-label">模型名称</label>
-          <input type="text" id="bb-api-model" class="text_pole" placeholder="gpt-4o-mini" />
-        </div><div class="bb-row">
-          <button id="bb-test-api" class="menu_button" type="button">🧪 测试连接</button>
-        </div>
+      <!-- ═══ 设置面板主题切换 ═══ -->
+      <div style="display:flex;gap:4px;padding:8px;justify-content:center;border-bottom:1px solid var(--bbs-border);">
+        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="">🖤 暗黑</button>
+        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="purple">💜 紫调</button>
+        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="gothic">🩸 哥特</button>
+        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="ocean">🌊 海洋</button>
+        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="monochrome">⬜ 黑白</button>
       </div>
 
-      <!--── 通用提示词预设 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">📝 提示词预设</h4>
-        <div class="bb-field">
-          <label class="bb-field-label">当前预设</label>
-          <div class="bb-row">
-            <select id="bb-preset-select" class="text_pole" style="flex:1;min-width:0;"></select>
-            <button id="bb-preset-edit" class="menu_button bb-icon-btn" type="button" title="编辑">✏️</button>
-            <button id="bb-preset-delete" class="menu_button bb-icon-btn" type="button" title="删除">🗑️</button>
-          </div>
+      <!-- ═══ 1. 基础设置 ═══ -->
+      <div class="bbs-section open">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">⚙️ 基础设置</span>
+          <span class="bbs-section-arrow">▼</span>
         </div>
-        <div class="bb-btn-group">
-          <button id="bb-preset-new" class="menu_button" type="button">➕ 新建</button>
-          <button id="bb-preset-import" class="menu_button" type="button">📥 导入</button>
-          <button id="bb-preset-export" class="menu_button" type="button">📤 导出</button>
-        </div><!--预设编辑器（展开式）-->
-        <div id="bb-preset-editor" class="bb-preset-editor bb-hidden">
-          <h5 id="bb-preset-editor-title">编辑预设</h5>
-          <div class="bb-field">
-            <label class="bb-field-label">预设名称</label>
-            <input type="text" id="bb-pe-name" class="text_pole" />
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">全局系统提示词</label>
-            <textarea id="bb-pe-global" class="text_pole" rows="3" placeholder="所有AI调用共享的系统提示词..."></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">屏蔽词（逗号分隔）</label>
-            <input type="text" id="bb-pe-blacklist" class="text_pole" placeholder="词1,词2,词3" />
-          </div>
-
-          <hr class="bb-divider" />
-          <p class="bb-hint-text">以下为各功能的专用提示词（留空则使用内置默认）：</p>
-
-          <div class="bb-field">
-            <label class="bb-field-label">📖 日记</label>
-            <textarea id="bb-pe-diary" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">📋 总结</label>
-            <textarea id="bb-pe-summary" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">🌤环境</label>
-            <textarea id="bb-pe-weather" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">🎭氛围</label>
-            <textarea id="bb-pe-vibe" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">👥 NPC</label>
-            <textarea id="bb-pe-npc" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">🎲 命运事件</label>
-            <textarea id="bb-pe-chaos" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">🦋 平行宇宙</label>
-            <textarea id="bb-pe-parallel" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">📡 世界频段</label>
-            <textarea id="bb-pe-world" class="text_pole" rows="2"></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">💌 情侣空间</label>
-            <textarea id="bb-pe-couple" class="text_pole" rows="2"></textarea>
-          </div>
-
-          <div class="bb-btn-group" style="margin-top:10px;">
-            <button id="bb-pe-save" class="menu_button bb-btn-primary" type="button">💾 保存</button>
-            <button id="bb-pe-cancel" class="menu_button" type="button">取消</button>
-          </div>
-        </div>
-      </div>
-
-      <!--── OOC独立预设 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">⭐ Burning Star Chat预设</h4>
-        <p class="bb-hint-text">破墙聊天室使用独立的预设，与角色扮演提示词分离。</p>
-        <div class="bb-field">
-          <label class="bb-field-label">当前OOC预设</label>
-          <div class="bb-row">
-            <select id="bb-ooc-preset-select" class="text_pole" style="flex:1;min-width:0;"></select>
-            <button id="bb-ooc-preset-edit" class="menu_button bb-icon-btn" type="button" title="编辑">✏️</button>
-            <button id="bb-ooc-preset-delete" class="menu_button bb-icon-btn" type="button" title="删除">🗑️</button>
-          </div>
-        </div>
-        <div class="bb-btn-group">
-          <button id="bb-ooc-preset-new" class="menu_button" type="button">➕ 新建</button>
-          <button id="bb-ooc-preset-import" class="menu_button" type="button">📥 导入</button>
-          <button id="bb-ooc-preset-export" class="menu_button" type="button">📤 导出</button>
-        </div>
-
-        <!--OOC预设编辑器-->
-        <div id="bb-ooc-preset-editor" class="bb-preset-editor bb-hidden">
-          <h5 id="bb-ooc-pe-title">编辑OOC预设</h5>
-          <div class="bb-field">
-            <label class="bb-field-label">预设名称</label>
-            <input type="text" id="bb-ooc-pe-name" class="text_pole" />
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">系统提示词</label>
-            <textarea id="bb-ooc-pe-system" class="text_pole" rows="4" placeholder="你是角色的'真实人格'，现在脱离了剧本设定..."></textarea>
-          </div>
-          <div class="bb-row">
-            <div class="bb-field" style="flex:1;">
-              <label class="bb-field-label">温度 (Temperature)</label>
-              <input type="number" id="bb-ooc-pe-temp" class="text_pole" min="0" max="2" step="0.1" value="0.8" style="width:100px;" />
-            </div>
-            <div class="bb-field" style="flex:1;">
-              <label class="bb-field-label">最大Token数</label>
-              <input type="number" id="bb-ooc-pe-tokens" class="text_pole" min="50" max="8192" value="800" style="width:120px;" />
-            </div>
-          </div>
-          <div class="bb-btn-group" style="margin-top:10px;">
-            <button id="bb-ooc-pe-save" class="menu_button bb-btn-primary" type="button">💾 保存</button>
-            <button id="bb-ooc-pe-cancel" class="menu_button" type="button">取消</button>
-          </div>
-        </div>
-      </div>
-
-      <!--── 生图API配置 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">🎨 生图配置</h4>
-        <div class="bb-field">
-          <label class="bb-field-label">生图提供商</label>
-          <select id="bb-img-provider" class="text_pole">
-            <option value="placeholder">占位图（无需API）</option>
-            <option value="novelai">NovelAI</option>
-            <option value="stablediffusion">Stable Diffusion WebUI</option>
-          </select>
-        </div>
-        <div id="bb-img-config-detail">
-          <div class="bb-field">
-            <label class="bb-field-label">生图API地址</label>
-            <input type="text" id="bb-img-api-base" class="text_pole" placeholder="http://127.0.0.1:7860" />
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">生图API Key（如需要）</label>
-            <input type="password" id="bb-img-api-key" class="text_pole" placeholder="可选" />
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">画风标签</label>
-            <input type="text" id="bb-img-artist-tags" class="text_pole" placeholder="masterpiece, best quality, ..." />
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">负面提示词</label>
-            <textarea id="bb-img-negative" class="text_pole" rows="2" placeholder="lowres, bad anatomy, ..."></textarea>
-          </div>
-          <div class="bb-field">
-            <label class="bb-field-label">提示词模板（用{prompt}占位）</label>
-            <textarea id="bb-img-template" class="text_pole" rows="2" placeholder="{prompt}, masterpiece, best quality"></textarea>
-          </div>
-          <label class="checkbox_label">
-            <input type="checkbox" id="bb-img-auto" />
-            <span>自动为日记/情书等生成配图</span>
+        <div class="bbs-section-body">
+          <label class="bbs-checkbox">
+            <input type="checkbox" id="bb-enabled" />
+            <span>启用骨与血插件</span>
           </label>
-        </div>
-      </div>
-<!-- ============================================
-     音乐播放器配置（新增 - MP3播放器）
-     ============================================ -->
-<div class="inline-drawer">
-  <div class="inline-drawer-toggle inline-drawer-header">
-    <b>🎵 音乐播放器</b>
-    <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
-  </div>
-  <div class="inline-drawer-content">
-    
-    <!-- 上传MP3 -->
-    <div class="bb-settings-group">
-      <label class="bb-label">📁 上传MP3文件：</label>
-      <input type="file" id="bb-music-upload" accept="audio/*" class="text_pole" />
-      <small class="bb-text-muted">支持MP3、WAV、OGG等格式，最大50MB</small>
-    </div>
-    
-    <!-- 添加URL -->
-    <div class="bb-settings-group">
-      <label class="bb-label">🔗 添加音频URL：</label>
-      <button id="bb-music-add-url-btn" class="menu_button">➕ 粘贴URL添加歌曲</button>
-      <small class="bb-text-muted">支持在线音频链接，可同时添加LRC歌词</small>
-    </div>
-    
-    <!-- 音量控制 -->
-    <div class="bb-settings-group">
-      <label class="bb-label">🔊 音量：<span id="bb-music-volume-val">70%</span></label>
-      <input type="range" id="bb-music-volume" min="0" max="1" step="0.01" value="0.7" class="text_pole" style="width: 100%;" />
-    </div>
-    
-    <!-- 歌单列表 -->
-    <div class="bb-settings-group">
-      <label class="bb-label">📋 歌单列表：</label>
-      <div id="bb-music-playlist-list" style="max-height: 300px; overflow-y: auto; margin-top: 8px;">
-        <!-- 歌曲列表将动态渲染到这里 -->
-      </div>
-    </div>
-    
-    <!-- 歌单管理按钮 -->
-    <div class="bb-settings-group">
-      <div class="bb-btn-group">
-        <button id="bb-music-export-playlist" class="menu_button">📤 导出歌单</button>
-        <button id="bb-music-import-playlist" class="menu_button">📥 导入歌单</button>
-        <button id="bb-music-clear-playlist" class="menu_button menu_button_icon">🗑️ 清空歌单</button>
-      </div>
-      <small class="bb-text-muted">歌单以JSON格式导入导出，包含歌曲信息和歌词</small>
-    </div>
-    
-    <!-- 使用说明 -->
-    <div class="bb-settings-group">
-      <details>
-        <summary class="bb-details-summary">📖 使用说明</summary>
-        <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-top: 8px;">
-          <p style="font-size: 12px; line-height: 1.6; color: var(--bb-text-dim);">
-            <strong>功能特性：</strong><br>
-            • 支持上传本地MP3文件或添加在线音频URL<br>
-            • 支持LRC格式歌词，实现逐行同步显示<br>
-            • 主面板顶栏显示迷你播放器，滚动显示歌词/歌名<br>
-            • 支持播放控制：上一首、下一首、播放/暂停<br>
-            • 点击进度条可跳转到指定位置<br>
-            <br>
-            <strong>LRC歌词格式：</strong><br>
-            [00:12.00]第一句歌词<br>
-            [00:17.50]第二句歌词<br>
-            [00:21.00]第三句歌词<br>
-            <br>
-            <strong>提示：</strong><br>
-            • 上传的文件会转为Base64存储在浏览器本地<br>
-            • 大量本地文件可能占用较多存储空间<br>
-            • 建议使用在线URL方式添加歌曲<br>
-            • 歌单可导出备份，切换浏览器时导入恢复
-          </p>
-        </div>
-      </details>
-    </div>
-    
-  </div>
-</div>
-        <!-- 音乐搜索API -->
-<div class="bb-field">
-  <label class="bb-field-label">🔍 音乐搜索API</label>
-  <input id="bb-music-search-api" type="text" class="text_pole" placeholder="https://api.xxx.com/search?keyword={keyword}" />
-  <span class="bb-hint-text">URL中用{keyword} 作为搜索关键词占位符</span>
-</div>
-<div class="bb-btn-group">
-  <button class="menu_button" id="bb-music-test-search-api">🔗 测试API</button>
-</div>
 
-  <!--── 歌单配置结束  ──-->
-      <!--── 海报配置 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">🖼 语录海报配置</h4>
-        <div class="bb-field">
-          <label class="bb-field-label">默认背景图URL</label>
-          <input type="text" id="bb-poster-bg" class="text_pole" placeholder="https://..." />
+          <hr class="bbs-divider">
+
+          <label class="bbs-checkbox">
+            <input type="checkbox" id="bb-auto-diary" />
+            <span>自动生成日记 & 总结</span>
+          </label>
+
+          <div class="bbs-field">
+            <label class="bbs-label">触发条数（每N条消息自动生成）</label>
+            <input type="number" id="bb-diary-trigger" min="5" max="200" />
+          </div></div>
+      </div>
+
+      <!-- ═══ 2. 副API配置 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🔌 副API配置</span>
+          <span class="bbs-section-arrow">▼</span>
         </div>
-        <div class="bb-field">
-          <label class="bb-field-label">自定义字体URL（.woff2/.ttf）</label>
-          <input type="text" id="bb-poster-font-url" class="text_pole" placeholder="https://...font.woff2" />
-        </div>
-        <div class="bb-row">
-          <div class="bb-field" style="flex:1;">
-            <label class="bb-field-label">字体名称</label>
-            <input type="text" id="bb-poster-font-name" class="text_pole" placeholder="MyFont" />
+        <div class="bbs-section-body">
+          <div class="bbs-field">
+            <label class="bbs-label">API地址</label>
+            <input type="text" id="bb-api-base" placeholder="https://api.openai.com/v1" />
           </div>
-          <div class="bb-field" style="flex-shrink:0;">
-            <label class="bb-field-label">文字颜色</label>
-            <input type="color" id="bb-poster-text-color" value="#ffffff" style="width:60px;height:32px;padding:2px;border:1px solid var(--bb-border, #555);border-radius:4px;cursor:pointer;" />
-          </div>
-        </div>
-      </div>
-
-      <!--── 主页布局 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">🏠 主页布局</h4>
-        <div class="bb-layout-selector">
-          <div class="bb-layout-option" data-layout="together">
-            <span class="bb-layout-icon">👫</span>
-            <span>相伴</span>
-          </div>
-          <div class="bb-layout-option" data-layout="dashboard">
-            <span class="bb-layout-icon">📊</span>
-            <span>仪表盘</span>
-          </div>
-          <div class="bb-layout-option" data-layout="minimalist">
-            <span class="bb-layout-icon">🌙</span>
-            <span>极简</span>
-          </div>
-        </div>
-      </div>
-
-      <!--── 风格预设 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">🎨 主题风格</h4>
-        <div class="bb-field">
-          <label class="bb-field-label">风格预设</label>
-          <select id="bb-style-preset" class="text_pole">
-            <option value="modern">现代（紫调）</option>
-            <option value="ancient">古风（暖金）</option>
-            <option value="gothic">哥特（暗红）</option>
-            <option value="custom">自定义</option>
-            <option value="monochrome">🖤黑白</option>
-
-          </select>
-        </div>
-      </div>
-
-      <!--── 自定义CSS ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">✨ 自定义 CSS</h4>
-        <p class="bb-hint-text">
-          在下方输入自定义CSS，可覆盖插件的任何样式。所有插件元素均以 <code>bb-</code> 或 <code>#bb-</code> 开头。
-        </p>
-
-        <!-- 示例模板按钮 -->
-        <div class="bb-css-templates">
-          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="glow">✨ 发光边框</button>
-          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="round">🔵 圆润气泡</button>
-          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="transparent">🪟 毛玻璃</button>
-          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="pink">🌸 樱花粉</button>
-          <button class="menu_button bb-css-tpl-btn" type="button" data-tpl="cyberpunk">🌃 赛博朋克</button>
-        </div>
-
-        <textarea id="bb-custom-css" class="text_pole bb-css-editor" rows="8" placeholder="/* 在此输入自定义CSS */"></textarea>
-
-        <div class="bb-btn-group" style="margin-top:8px;">
-          <button id="bb-css-apply" class="menu_button bb-btn-primary" type="button">🎨 应用</button>
-          <button id="bb-css-reset" class="menu_button bb-btn-danger" type="button">🗑清空</button>
-          <button id="bb-css-copy-prompt" class="menu_button" type="button" title="复制AI提示词到剪贴板">📋 复制AI提示词</button>
-        </div>
-
-        <!-- AI提示词参考（折叠）-->
-        <details class="bb-css-ai-help">
-          <summary class="bb-details-summary">💡 如何让AI帮你写CSS？</summary>
-          <div class="bb-css-ai-prompt-box">
-            <p class="bb-hint-text" style="line-height:1.7;margin:8px 0;">
-              点击上方「📋 复制AI提示词」按钮，将提示词粘贴给任意AI（ChatGPT/Claude等），然后描述你想要的效果即可。
-              AI会返回可直接粘贴到上方编辑器的CSS代码。
-            </p>
-            <div id="bb-css-ai-prompt-preview" class="bb-css-prompt-preview">
-              <!-- 由JS动态填充 -->
+          <div class="bbs-field">
+            <label class="bbs-label">API Key</label>
+            <div class="bbs-row">
+              <input type="password" id="bb-api-key" placeholder="sk-..." />
+              <button class="bbs-btn bbs-btn-sm" id="bb-toggle-key-vis" style="flex:0;">👁</button>
             </div>
           </div>
-        </details>
-      </div>
-
-      <!--── 数据管理 ──-->
-      <div class="bb-settings-section">
-        <h4 class="bb-section-title">💾 数据管理</h4>
-        <div class="bb-btn-group">
-          <button id="bb-export-md" class="menu_button" type="button">📄 导出MD</button>
-          <button id="bb-export-json" class="menu_button" type="button">📦 导出JSON</button>
-          <button id="bb-clear-data" class="menu_button bb-btn-danger" type="button">⚠️ 清空数据</button>
+          <div class="bbs-field">
+            <label class="bbs-label">模型名称</label>
+            <input type="text" id="bb-api-model" placeholder="gpt-4o-mini" />
+          </div>
+          <button class="bbs-btn bbs-btn-primary" id="bb-test-api">🔗 测试连接</button>
         </div>
       </div>
 
-      <!--── 关于 ──-->
-      <div class="bb-settings-section bb-about">
-        <p class="bb-hint-text" style="text-align:center;">🦴 骨与血 Bone & Blood v0.7.0<br/>
-          2026@SHADOW&lt;安息之影&gt;
-        </p>
+      <!-- ═══ 3. 提示词预设 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">📝 提示词预设</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-field">
+            <select id="bb-preset-select"></select>
+          </div>
+          <div class="bbs-btn-row">
+            <button class="bbs-btn" id="bb-preset-edit">✏️ 编辑</button>
+            <button class="bbs-btn" id="bb-preset-new">➕ 新建</button><button class="bbs-btn bbs-btn-danger" id="bb-preset-delete">🗑️ 删除</button>
+            <button class="bbs-btn" id="bb-preset-import">📥 导入</button>
+            <button class="bbs-btn" id="bb-preset-export">📤 导出</button>
+          </div>
+
+          <!-- 预设编辑器（展开区域） -->
+          <div id="bb-preset-editor">
+            <h5id="bb-preset-editor-title" style="color:var(--bbs-accent);margin:00 10px;">编辑预设</h5>
+            <div class="bbs-field">
+              <label class="bbs-label">预设名称</label>
+              <input type="text" id="bb-pe-name" />
+            </div>
+            <div class="bbs-field">
+              <label class="bbs-label">🌐 全局氛围提示词</label>
+              <textarea id="bb-pe-global" rows="2" placeholder="全局氛围提示词"></textarea>
+            </div>
+            <hr class="bbs-divider">
+            <div class="bbs-field"><label class="bbs-label">📖 日记</label><textarea id="bb-pe-diary" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">📜 总结</label><textarea id="bb-pe-summary" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">☁️ 环境</label><textarea id="bb-pe-weather" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">❤️ 氛围</label><textarea id="bb-pe-vibe" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">🧑‍🤝‍🧑 NPC</label><textarea id="bb-pe-npc" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">🎲 命运</label><textarea id="bb-pe-chaos" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">🦋 平行宇宙</label><textarea id="bb-pe-parallel" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">📻 世界频段</label><textarea id="bb-pe-world" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">💕 情侣空间</label><textarea id="bb-pe-couple" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">🚫屏蔽词（逗号分隔）</label><input type="text" id="bb-pe-blacklist" placeholder="词1,词2" /></div>
+            <div class="bbs-btn-row">
+              <button class="bbs-btn bbs-btn-primary" id="bb-pe-save">💾 保存</button>
+              <button class="bbs-btn" id="bb-pe-cancel">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ═══ 4. OOC预设（独立破墙） ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">💬 OOC预设（Burning Star）</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-field">
+            <select id="bb-ooc-preset-select"></select>
+          </div>
+          <div class="bbs-btn-row">
+            <button class="bbs-btn" id="bb-ooc-preset-edit">✏️ 编辑</button>
+            <button class="bbs-btn" id="bb-ooc-preset-new">➕ 新建</button>
+            <button class="bbs-btn bbs-btn-danger" id="bb-ooc-preset-delete">🗑️ 删除</button>
+            <button class="bbs-btn" id="bb-ooc-preset-import">📥 导入</button>
+            <button class="bbs-btn" id="bb-ooc-preset-export">📤 导出</button>
+          </div>
+
+          <!-- OOC预设编辑器-->
+          <div id="bb-ooc-preset-editor">
+            <h5 id="bb-ooc-pe-title" style="color:var(--bbs-accent);margin:8px 0;">编辑OOC预设</h5>
+            <div class="bbs-field"><label class="bbs-label">预设名称</label><input type="text" id="bb-ooc-pe-name" /></div>
+            <div class="bbs-field"><label class="bbs-label">系统提示词</label><textarea id="bb-ooc-pe-system" rows="5"></textarea></div>
+            <div class="bbs-row">
+              <div class="bbs-field"><label class="bbs-label">Temperature</label><input type="number" id="bb-ooc-pe-temp" step="0.1" min="0" max="2" /></div>
+              <div class="bbs-field"><label class="bbs-label">Max Tokens</label><input type="number" id="bb-ooc-pe-tokens" min="50" max="4000" /></div>
+            </div>
+            <div class="bbs-btn-row">
+              <button class="bbs-btn bbs-btn-primary" id="bb-ooc-pe-save">💾 保存</button>
+              <button class="bbs-btn" id="bb-ooc-pe-cancel">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 5. 生图配置 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🎨 AI生图配置</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-field">
+            <label class="bbs-label">图片生成服务</label>
+            <select id="bb-img-provider">
+              <option value="placeholder">占位图片（测试用）</option>
+              <option value="novelai">NovelAI</option>
+              <option value="stablediffusion">Stable Diffusion WebUI</option>
+            </select>
+          </div>
+          <div id="bb-img-config-detail">
+            <div class="bbs-field"><label class="bbs-label">API地址</label><input type="text" id="bb-img-api-base" placeholder="http://127.0.0.1:7860" /></div>
+            <div class="bbs-field"><label class="bbs-label">API Key</label><input type="password" id="bb-img-api-key" /></div>
+            <div class="bbs-field"><label class="bbs-label">画风标签</label><input type="text" id="bb-img-artist-tags" placeholder="watercolor, soft lighting" /></div>
+            <div class="bbs-field"><label class="bbs-label">负面提示词</label><textarea id="bb-img-negative" rows="2"></textarea></div>
+            <div class="bbs-field"><label class="bbs-label">提示词模板</label><textarea id="bb-img-template" rows="3" placeholder="基于以下内容生成插画：{content}"></textarea></div>
+            <label class="bbs-checkbox"><input type="checkbox" id="bb-img-auto" /><span>自动为日记生成配图</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 6. 海报配置 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🖼️ 海报导出配置</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-field"><label class="bbs-label">背景图URL</label><input type="text" id="bb-poster-bg" placeholder="https://..." /></div>
+          <div class="bbs-field"><label class="bbs-label">字体URL</label><input type="text" id="bb-poster-font-url" placeholder="https://fonts.googleapis.com/..." /></div>
+          <div class="bbs-field"><label class="bbs-label">字体名称</label><input type="text" id="bb-poster-font-name" placeholder="Noto Serif SC" /></div>
+          <div class="bbs-field"><label class="bbs-label">文字颜色</label><input type="color" id="bb-poster-text-color" value="#ffffff" style="height:36px;" /></div>
+        </div>
+      </div>
+
+      <!-- ═══ 7. 主页布局 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🏠 主页布局</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-btn-row">
+            <div class="bb-layout-option" data-layout="together">🎧 一起听</div>
+            <div class="bb-layout-option" data-layout="dashboard">📊 仪表盘</div>
+            <div class="bb-layout-option" data-layout="minimalist">✨ 极简</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 8. 风格主题（主面板） ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🎭 主面板风格主题</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-field">
+            <label class="bbs-label">风格预设</label>
+            <select id="bb-style-preset">
+              <option value="modern">🏠 现代</option>
+              <option value="ancient">🏮 古风</option>
+              <option value="gothic">🕯️ 哥特</option>
+              <option value="monochrome">🖤 黑白</option></select>
+          </div></div>
+      </div>
+      <!-- ═══ 9. 自定义CSS ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🎨 自定义CSS</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-btn-row" style="margin-bottom:8px;">
+            <button class="bb-css-tpl-btn" data-tpl="glow">✨ 发光</button>
+            <button class="bb-css-tpl-btn" data-tpl="round">🔵 圆润</button>
+            <button class="bb-css-tpl-btn" data-tpl="sharp">🔷 锐利</button>
+            <button class="bb-css-tpl-btn" data-tpl="neon">💡 霓虹</button>
+          </div>
+          <div class="bbs-field">
+            <textarea id="bb-custom-css" rows="8" placeholder="/* 在这里输入自定义CSS */"></textarea>
+          </div><div class="bbs-btn-row">
+            <button class="bbs-btn bbs-btn-primary" id="bb-css-apply">✅ 应用CSS</button>
+            <button class="bbs-btn bbs-btn-danger" id="bb-css-reset">🗑️ 清空</button>
+            <button class="bbs-btn" id="bb-css-copy-prompt">📋 复制AI提示词</button>
+          </div>
+          <details style="margin-top:8px;">
+            <summary style="cursor:pointer;font-size:12px;color:var(--bbs-text-dim);">📄 AI提示词预览</summary>
+            <pre id="bb-css-ai-prompt-preview" style="font-size:11px;max-height:200px;overflow:auto;background:var(--bbs-bg-input);padding:8px;border-radius:6px;margin-top:6px;white-space:pre-wrap;word-break:break-all;color:var(--bbs-text-dim);"></pre>
+          </details>
+        </div>
+      </div>
+
+      <!-- ═══ 10. 音乐播放器 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">🎵 音乐播放器</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-field">
+            <label class="bbs-label">🔍 音乐搜索API</label>
+            <input type="text" id="bb-music-search-api" placeholder="https://api.xxx.com/search?keyword={keyword}" />
+            <span class="bbs-hint">URL中用{keyword} 作为搜索关键词占位符</span>
+          </div>
+          <button class="bbs-btn" id="bb-music-test-search-api" style="margin-bottom:10px;">🔗 测试搜索API</button><hr class="bbs-divider">
+
+          <div class="bbs-field">
+            <label class="bbs-label">添加歌曲</label>
+            <div class="bbs-btn-row">
+              <label class="bbs-btn" style="cursor:pointer;">📁 上传音频
+                <input type="file" id="bb-music-upload" accept="audio/*" style="display:none;" />
+              </label>
+              <button class="bbs-btn" id="bb-music-add-url-btn">🔗 添加URL</button>
+            </div>
+          </div>
+
+          <div class="bbs-field">
+            <label class="bbs-label">音量</label>
+            <div class="bbs-row">
+              <input type="range" id="bb-music-volume" min="0" max="1" step="0.05" style="flex:1;" />
+              <span id="bb-music-volume-val" style="font-size:12px;color:var(--bbs-text-dim);min-width:35px;text-align:right;">70%</span>
+            </div>
+          </div>
+
+          <div class="bbs-field">
+            <label class="bbs-label">歌单</label>
+            <div id="bb-music-playlist-list"></div>
+          </div>
+
+          <div class="bbs-btn-row">
+            <button class="bbs-btn" id="bb-music-export-playlist">📤 导出歌单</button>
+            <button class="bbs-btn" id="bb-music-import-playlist">📥 导入歌单</button>
+            <button class="bbs-btn bbs-btn-danger" id="bb-music-clear-playlist">🗑️ 清空歌单</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 11. 数据管理 ═══ -->
+      <div class="bbs-section">
+        <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
+          <span class="bbs-section-title">💾 数据管理</span>
+          <span class="bbs-section-arrow">▼</span>
+        </div>
+        <div class="bbs-section-body">
+          <div class="bbs-btn-row">
+            <button class="bbs-btn" id="bb-export-md">📄 导出Markdown</button>
+            <button class="bbs-btn" id="bb-export-json">📦 导出JSON</button>
+          </div>
+          <hr class="bbs-divider">
+          <button class="bbs-btn bbs-btn-danger" id="bb-clear-data" style="width:100%;">⚠️ 清空当前聊天的所有骨与血数据</button>
+        </div>
+      </div>
+
+      <!-- ═══ 版本信息 ═══ -->
+      <div class="bbs-version">
+        🦴骨与血 v7.1· By SHADOW&lt;安息之影&gt; © 2026
       </div></div>
   </div>
 </div>
+
+<!--═══ 设置面板主题切换脚本 ═══ -->
+<script>
+(function() {
+  // 设置面板主题切换
+  $(document).on('click', '.bbs-settings-theme', function() {
+    const theme = $(this).data('theme');
+    const panel = document.getElementById('bb-settings-panel');
+    if (!panel) return;
+    
+    // 移除所有主题class
+    panel.className = panel.className.replace(/bbs-theme-\w+/g, '').trim();
+    
+    // 添加新主题
+    if (theme) {
+      panel.classList.add('bbs-theme-' + theme);
+    }
+    
+    // 高亮当前按钮
+    $('.bbs-settings-theme').css({ 'border-color': '', 'color': '' });
+    $(this).css({ 'border-color':'var(--bbs-accent)', 'color': 'var(--bbs-accent)' });
+    // 保存到localStorage
+    localStorage.setItem('bb-settings-theme', theme);
+  });
+  // 恢复上次选择的设置面板主题
+  const savedTheme = localStorage.getItem('bb-settings-theme');
+  if (savedTheme) {
+    const panel = document.getElementById('bb-settings-panel');
+    if (panel) panel.classList.add('bbs-theme-' + savedTheme);$(`.bbs-settings-theme[data-theme="${savedTheme}"]`).css({ 
+      'border-color': 'var(--bbs-accent)', 
+      'color': 'var(--bbs-accent)' 
+    });
+  }
+})();
+</script>
+
