@@ -1252,164 +1252,192 @@
    移动端适配
    ═══════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════
-   移动端适配（完整修复版）
-   ═══════════════════════════════════════════ */
-
+/* ========================================
+   移动端适配 - 完全修复版本
+======================================== */
 @media (max-width: 768px) {
-  /* 手机端主面板 - 90%高度，底部弹出 */
-  .bb-main-panel,
-  #bb-main-panel {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    max-height: 90vh !important;
-    height: auto !important;
-    min-height: 70vh;
-    border-radius: 16px 16px 0 0 !important;
-    /* 定位：底部居中 */
+  /* 1. 强制重置主面板所有定位 */
+  .bb-main-panel {
     position: fixed !important;
     top: auto !important;
     bottom: 0 !important;
-    left: 50% !important;
-    right: auto !important;
-    /* 水平居中 - 关键！*/
-    transform: translateX(-50%) !important;
-    /* 平滑过渡 */
-    transition: opacity 0.2s ease !important;
-    /* 防止内容溢出 */
-    overflow-y: auto;
-    overflow-x: hidden;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 85vh !important;
+    max-height: 85vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    border-radius: 20px 20px 0 0 !important;
+    z-index: 99999 !important; /* 提升到最高层级 */
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
   }
-  
-  /* 面板头部增加拖动指示器 */
-  .bb-panel-header {
-    padding-top: 24px !important;
-    position: relative;
+
+  /* 2. 移除所有可能的动画干扰 */
+  .bb-main-panel * {
+    animation: none !important;
+    transition: none !important;
   }
-  
-  .bb-panel-header::before {
+
+  /* 3. 拖动指示器 */
+  .bb-main-panel::before {
     content: '';
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
+    display: block;
     width: 40px;
     height: 4px;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255,255,255,0.5);
     border-radius: 2px;
-  }
-  
-  /* OOC窗口移动端适配 */
-  .bb-ooc-win,
-  #bb-ooc-win {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    height: 90vh !important;
-    max-height: 90vh !important;
-    border-radius: 16px 16px 0 0 !important;
-    position: fixed !important;
-    top: auto !important;
-    bottom: 0 !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
-  }
-
-  /* 其他子窗口适配 */
-  .bb-sub-window,
-  #bb-bf-win {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    height: 90vh !important;
-    max-height: 90vh !important;
-    border-radius: 16px 16px 0 0 !important;
-    position: fixed !important;
-    top: auto !important;
-    bottom: 0 !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
-  }
-
-  /* Tab导航横向滚动 */
-  .bb-tab-nav {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 8px 10px;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .bb-tab-nav::-webkit-scrollbar {
-    height: 3px;
-  }
-  
-  .bb-tab-btn { 
-    font-size: 11px; 
-    padding: 6px 12px;
-    white-space: nowrap;
+    margin: 8px auto;
     flex-shrink: 0;
   }
 
-  /* 隐藏桌面端悬浮球 */
-  .bb-trigger-btn,
-  #bb-trigger-btn { 
-    display: none !important; 
+  /* 4. 标题栏固定 */
+  .bb-panel-header {
+    flex-shrink: 0 !important;
+    padding: 8px 12px !important;
+    background: var(--bb-primary-color, #8b7355) !important;
+    border-radius: 20px 20px 0 0 !important;
   }
 
-  /* 画廊网格 */
+  .bb-panel-title {
+    font-size: 16px !important;
+    margin: 0 !important;
+  }
+
+  .bb-panel-close {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 20px !important;
+  }
+
+  /* 5. Tab导航横向滚动 */
+  .bb-panel-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 8px 4px !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .bb-panel-tabs::-webkit-scrollbar {
+    height: 3px !important;
+  }
+
+  .bb-tab-button {
+    flex: 0 0 auto !important;
+    min-width: 80px !important;
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 6. 内容区可滚动 */
+  .bb-panel-content {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 12px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* 7. 音乐播放器适配 */
+  .bb-music-bar {
+    padding: 6px 8px !important;
+    height: auto !important;
+    min-height: 40px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .bb-music-lyrics {
+    font-size: 12px !important;
+    max-width: 200px !important;
+  }
+
+  .bb-music-controls {
+    gap: 8px !important;
+  }
+
+  .bb-music-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+  }
+
+  /* 8. 子窗口（OOC/蝴蝶窗口）适配 */
+  .bb-ooc-window,
+  .bb-butterfly-window {
+    position: fixed !important;
+    top: 10vh !important;
+    left: 5vw !important;
+    right: 5vw !important;
+    width: 90vw !important;
+    height: 75vh !important;
+    max-height: 75vh !important;
+    margin: 0 !important;
+    z-index: 100000 !important;
+  }
+
+  /* 9. 悬浮球适配 */
+  .bb-floating-orb {
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 24px !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99998 !important;
+  }
+
+  /* 10. 强制显示修复 */
+  .bb-main-panel:not([style*="display: none"]) {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* 11. 表单元素适配 */
+  .bb-form-group {
+    margin-bottom: 12px !important;
+  }
+
+  .bb-input,
+  .bb-textarea,
+  .bb-select {
+    font-size: 16px !important; /* 防止iOS自动缩放 */
+    padding: 8px !important;
+  }
+
+  .bb-textarea {
+    min-height: 100px !important;
+  }
+
+  /* 12. 按钮适配 */
+  .bb-btn,
+  .bb-btn-primary,
+  .bb-btn-secondary {
+    min-height: 44px !important; /* 触摸友好 */
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+  }
+
+  /* 13. 卡片列表适配 */
+  .bb-card {
+    margin-bottom: 12px !important;
+  }
+
+  /* 14. 图库网格适配 */
   .bb-gallery-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
 
-  /* 仪表盘网格 */
-  .bb-dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  /* 主页顶部 */
-  .bb-home-top-row { 
-    flex-direction: column; 
-    gap: 12px; 
-  }
-  
-  .bb-home-link-emoji { 
-    font-size: 28px; 
-  }
-
-  /* 模态框 */
-  .bb-modal-content { 
-    margin: 10px; 
-    padding: 16px;
-    max-width: 95vw;
-  }
-  
-  /* Tab内容区 */
-  .bb-tab-content {
-    padding: 14px;
-  }
-}
-
-/* 超小屏幕（小于480px） */
-@media (max-width: 480px) {
-  .bb-tab-content { 
-    padding: 12px; 
-  }
-  
-  .bb-gallery-grid { 
-    grid-template-columns: 1fr 1fr; 
-    gap: 6px; 
-  }
-  
-  .bb-sticker-grid { 
-    grid-template-columns: repeat(3, 1fr); 
-  }
-  
-  .bb-tab-btn {
-    font-size: 10px;
-    padding: 5px 10px;
+  .bb-gallery-item {
+    height: 150px !important;
   }
 }
 
