@@ -4173,20 +4173,125 @@ function collectMessage(messageId) {
   saveChatData(); renderScrapbook(); toastr.success(`🌟 已收藏 #${messageId}`); checkAchievements();
 }
 
-// ── 宏注册 ──
+//──宏注册（使用 registerMacroLike API） ──
+
+// 存储所有宏的取消注册函数，便于清理
+const bbMacroUnregisters = [];
 
 function registerAllMacros() {
+  // 先清理旧的注册
+  bbMacroUnregisters.forEach(u => {
+    try { u.unregister(); } catch(e) {}
+  });
+  bbMacroUnregisters.length = 0;
+
   try {
-    if (typeof MacrosParser !== 'undefined' && MacrosParser.registerMacro) {
+    // 检查 registerMacroLike 是否可用
+    if (typeof registerMacroLike === 'function') {
+      
+      // {{bb_diary}} — 最新日记内容
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_diary\}\}/gi, (context) => {
+          if (!pluginData || pluginData.diary_blood.length === 0) return '(暂无日记)';
+          return pluginData.diary_blood[pluginData.diary_blood.length - 1].content;
+        })
+      );
+
+      // {{bb_summary}} — 最新总结
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_summary\}\}/gi, (context) => {
+          if (!pluginData || pluginData.summaries.length === 0) return '(暂无总结)';
+          return pluginData.summaries[pluginData.summaries.length - 1].content;
+        })
+      );
+
+      // {{bb_weather}} — 环境信息
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_weather\}\}/gi, (context) => {
+          return pluginData?.weather || '(环境未知)';
+        })
+      );
+
+      // {{bb_chaos_event}} — 命运事件（读取后自动清空，一次性使用）
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_chaos_event\}\}/gi, (context) => {
+          if (!pluginData) return '(无事件)';
+          const evt = pluginData.chaos_event;
+          if (!evt) return '(无事件)';
+          pluginData.chaos_event = '';
+          saveChatData();
+          return evt;
+        })
+      );
+
+      // {{bb_vibe}} — 氛围信息
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_vibe\}\}/gi, (context) => {
+          return pluginData?.vibe || '(氛围未知)';
+        })
+      );
+
+      // {{bb_npc_status}} — 所有NPC状态
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_npc_status\}\}/gi, (context) => {
+          if (!pluginData) return '(无NPC追踪)';
+          const names = Object.keys(pluginData.npc_status);
+          if (names.length === 0) return '(无NPC追踪)';
+          return names.map(n => `【${n}】${pluginData.npc_status[n].description || '未知'}`).join('\n');
+        })
+      );
+
+      // {{bb_npc:NPC名字}} — 指定NPC状态
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_npc:(.+?)\}\}/gi, (context, substring, npcName) => {
+          if (!pluginData || !npcName) return '(未知NPC)';
+          const info = pluginData.npc_status[npcName.trim()];
+          if (!info) return `(未追踪NPC: ${npcName.trim()})`;
+          return info.description || '未知';
+        })
+      );
+
+      // {{bb_records_count}} — 语录收藏数量
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_records_count\}\}/gi, (context) => {
+          return String(pluginData?.records_bone?.length || 0);
+        })
+      );
+
+      // {{bb_diary_count}} — 日记数量
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_diary_count\}\}/gi, (context) => {
+          return String(pluginData?.diary_blood?.length || 0);
+        })
+      );
+
+      // {{bb_world_feed}} — 最新世界频段消息
+      bbMacroUnregisters.push(
+        registerMacroLike(/\{\{bb_world_feed\}\}/gi, (context) => {
+          if (!pluginData || pluginData.world_feed.length === 0) return '(暂无世界频段消息)';
+          const latest = pluginData.world_feed.slice(-3);
+          return latest.map(f => f.content).join('\n');
+        })
+      );
+
+      console.log('[骨与血]📝 10个宏已通过 registerMacroLike 注册');
+
+    } else if (typeof MacrosParser !== 'undefined' && MacrosParser.registerMacro) {
+      //兼容旧版API（fallback）
       MacrosParser.registerMacro('bb_diary', () => pluginData.diary_blood.length === 0 ? '(暂无日记)' : pluginData.diary_blood[pluginData.diary_blood.length - 1].content);
       MacrosParser.registerMacro('bb_summary', () => pluginData.summaries.length === 0 ? '(暂无总结)' : pluginData.summaries[pluginData.summaries.length - 1].content);
       MacrosParser.registerMacro('bb_weather', () => pluginData.weather || '(环境未知)');
       MacrosParser.registerMacro('bb_chaos_event', () => { const evt = pluginData.chaos_event; if (!evt) return '(无事件)'; pluginData.chaos_event = ''; saveChatData(); return evt; });
       MacrosParser.registerMacro('bb_vibe', () => pluginData.vibe || '(氛围未知)');
       MacrosParser.registerMacro('bb_npc_status', () => { const names = Object.keys(pluginData.npc_status); if (names.length === 0) return '(无NPC追踪)'; return names.map(n => `【${n}】${pluginData.npc_status[n].description || '未知'}`).join('\n'); });
-      console.log('[骨与血]📝 6个宏已注册');
-    } else { console.warn('[骨与血] 未找到宏系统'); }
-  } catch (e) { console.error('[骨与血] 宏注册失败:', e); }
+      console.log('[骨与血] 📝 6个宏已通过 MacrosParser 注册（旧版兼容）');
+
+    } else {
+      console.warn('[骨与血] ⚠️ 未找到宏注册系统（registerMacroLike 和 MacrosParser 均不可用）');
+    }
+  } catch (e) {
+    console.error('[骨与血] 宏注册失败:', e);
+  }
 }
 
 // ── 动态CSS注入 ── 手机端适配修改过
