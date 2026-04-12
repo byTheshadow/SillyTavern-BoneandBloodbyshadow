@@ -3358,6 +3358,31 @@ function bindMainPanelEvents(panel) {
   // 关闭按钮
   $(panel).find('#bb-close-btn').on('click', () => $('#bb-main-panel').fadeOut(200));
 
+    // 生成总结按钮
+  $(panel).find('#bb-btn-gen-summary-tab').on('click', async () => {
+    await generateSummary();
+    renderSummary();
+  });
+  
+  // 清空总结
+  $(panel).find('#bb-btn-clear-summaries').on('click', () => {
+    if (!confirm('确定清空所有总结？')) return;
+    pluginData.summaries = [];
+    saveChatData();
+    renderSummary();
+    toastr.info('总结已清空');
+  });
+  
+  // 自动记录开关
+  $(panel).find('#bb-btn-toggle-auto').on('click', () => {
+    const s = getSettings();
+    s.auto_diary_enabled = !s.auto_diary_enabled;
+    saveSettingsDebounced();
+    updateAutoSummaryBar();
+    toastr.info(s.auto_diary_enabled ? '✅ 自动记录已开启' : '⏸ 自动记录已暂停');
+  });
+
+
   // ──────────────────────────────────────────
   // 音乐播放器事件（新增 - MP3播放器）
   // ──────────────────────────────────────────
