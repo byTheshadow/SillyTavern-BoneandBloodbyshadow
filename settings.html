@@ -1,23 +1,29 @@
-<!--═══════════════════════════════════════════🦴 骨与血 (Bone & Blood) v7.1— 设置面板
-     暗黑风格 · 支持主题切换═══════════════════════════════════════════ -->
+<!--═══════════════════════════════════════════🦴骨与血 (Bone & Blood) v7.1— 设置面板暗黑风格 · 支持主题切换═══════════════════════════════════════════ -->
 
 <style>
 /*── Settings面板暗黑主题 ── */
+/* 引入字体 —哥特 +衬线 + 等宽 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=MedievalSharp&family=UnifrakturMaguntia&family=Noto+Serif+SC:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 #bb-settings-panel {
-  --bbs-bg: #0d0d0d;
-  --bbs-bg-section: #141414;
-  --bbs-bg-input: #1a1a1a;
-  --bbs-bg-hover: #222;
-  --bbs-border: rgba(255,255,255,0.06);
-  --bbs-border-focus: rgba(255,255,255,0.2);
-  --bbs-text: #ccc;
-  --bbs-text-dim: #888;
-  --bbs-text-bright: #eee;
-  --bbs-accent: #c9a0dc;
-  --bbs-accent-dark: #a374c0;
-  --bbs-danger: #e87878;
-  --bbs-success: #4caf50;
-  --bbs-radius: 8px;
+  --bbs-bg: #08080c;
+  --bbs-bg-section: #0e0e14;
+  --bbs-bg-input: #12121a;
+  --bbs-bg-hover: #1a1a24;
+  --bbs-border: rgba(120,100,160,0.08);
+  --bbs-border-focus: rgba(180,140,220,0.25);
+  --bbs-text: #b8b0c8;
+  --bbs-text-dim: #706888;
+  --bbs-text-bright: #e0d8f0;
+  --bbs-accent: #9b6dff;
+  --bbs-accent-dark: #7b4dd0;
+  --bbs-accent-glow: rgba(155,109,255,0.15);
+  --bbs-danger: #ff5c6a;
+  --bbs-success: #3dd68c;
+  --bbs-radius: 10px;
+  --bbs-section-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  --bbs-header-gradient: linear-gradient(135deg, #0c0a180%, #14101e 50%, #0a0812 100%);
+  --bbs-glow-line: linear-gradient(90deg, transparent, var(--bbs-accent) 30%, var(--bbs-accent) 70%, transparent);
 }
 
 #bb-settings-panel .inline-drawer-content {
@@ -27,32 +33,75 @@
 }
 
 #bb-settings-panel .inline-drawer-header {
-  background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
-  border-bottom: 1px solid var(--bbs-border) !important;padding: 12px 16px !important;
+  background: var(--bbs-header-gradient) !important;
+  border-bottom: 1px solid var(--bbs-border) !important;
+  padding: 14px 18px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/*顶部标题栏装饰光线 */
+#bb-settings-panel .inline-drawer-header::after {
+  content: '';
+  position: absolute;
+  bottom:0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--bbs-glow-line);
+  opacity: 0.5;
 }
 
 #bb-settings-panel .inline-drawer-header b {
   color: var(--bbs-accent) !important;
   font-size: 15px !important;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 20px var(--bbs-accent-glow);
 }
 
-/*区块样式 */
+/*═══ 区块样式 ═══ */
 .bbs-section {
   background: var(--bbs-bg-section);
   border: 1px solid var(--bbs-border);
   border-radius: var(--bbs-radius);
-  margin: 8px;
+  margin: 8px 10px;
   overflow: hidden;
+  box-shadow: var(--bbs-section-shadow);
+  position: relative;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.bbs-section:hover {
+  border-color: rgba(155,109,255,0.12);
+}
+
+/* 区块左侧装饰线 */
+.bbs-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--bbs-accent), transparent 80%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.bbs-section.open::before {
+  opacity: 0.6;
 }
 
 .bbs-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 12px 16px;
   cursor: pointer;
   user-select: none;
-  transition: background0.15s;
+  transition: background 0.2s;
+  position: relative;
 }
 
 .bbs-section-header:hover {
@@ -65,46 +114,57 @@
   color: var(--bbs-text-bright);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-family: 'Noto Serif SC', serif;letter-spacing: 0.5px;
 }
 
 .bbs-section-arrow {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--bbs-text-dim);
-  transition: transform 0.2s;
+  transition: transform 0.25s ease, color 0.25s;
 }
 
 .bbs-section.open .bbs-section-arrow {
   transform: rotate(180deg);
+  color: var(--bbs-accent);
 }
 
 .bbs-section-body {
   display: none;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-top: 1px solid var(--bbs-border);
+  animation: bbs-body-reveal 0.25s ease;
+}
+
+@keyframes bbs-body-reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .bbs-section.open .bbs-section-body {
   display: block;
 }
 
-/* 表单元素 */
+/* ═══ 表单元素 ═══ */
 .bbs-field {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .bbs-label {
   display: block;
   font-size: 12px;
   color: var(--bbs-text-dim);
-  margin-bottom: 4px;font-weight: 500;
+  margin-bottom: 5px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .bbs-hint {
   font-size: 11px;
   color: var(--bbs-text-dim);
-  margin-top: 2px;
-  opacity: 0.7;
+  margin-top: 3px;
+  opacity: 0.6;
+  font-style: italic;
 }
 
 #bb-settings-panel input[type="text"],
@@ -116,66 +176,86 @@
   width: 100%;
   background: var(--bbs-bg-input) !important;
   border: 1px solid var(--bbs-border) !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   color: var(--bbs-text) !important;
-  padding: 8px 10px !important;
+  padding: 9px 12px !important;
   font-size: 13px !important;
-  transition: border-color 0.15s !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
   box-sizing: border-box;
 }
 
 #bb-settings-panel input:focus,
 #bb-settings-panel select:focus,
 #bb-settings-panel textarea:focus {
-  border-color: var(--bbs-border-focus) !important;
+  border-color: var(--bbs-accent) !important;
+  box-shadow: 0 0 0 2px var(--bbs-accent-glow) !important;
   outline: none !important;
 }
 
 #bb-settings-panel textarea {
   resize: vertical;
   min-height: 60px;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
-/* 按钮 */
+/* ═══ 按钮═══ */
 .bbs-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid var(--bbs-border);
   background: var(--bbs-bg-input);
   color: var(--bbs-text);
-  transition: all 0.15s;
+  transition: all 0.2s;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.bbs-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+  pointer-events: none;
 }
 
 .bbs-btn:hover {
   background: var(--bbs-bg-hover);
   border-color: var(--bbs-border-focus);
+  transform: translateY(-1px);box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+
+.bbs-btn:active {
+  transform: translateY(0);
 }
 
 .bbs-btn-primary {
-  background: var(--bbs-accent-dark);
+  background: linear-gradient(135deg, var(--bbs-accent-dark), var(--bbs-accent));
   border-color: var(--bbs-accent);color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .bbs-btn-primary:hover {
-  background: var(--bbs-accent);
+  background: linear-gradient(135deg, var(--bbs-accent), var(--bbs-accent-dark));
+  box-shadow: 0 4px 16px var(--bbs-accent-glow);
 }
 
 .bbs-btn-danger {
-  border-color: rgba(232,120,120,0.3);
+  border-color: rgba(255,92,106,0.25);
   color: var(--bbs-danger);
 }
 
 .bbs-btn-danger:hover {
-  background: rgba(232,120,120,0.1);
+  background: rgba(255,92,106,0.08);
+  border-color: rgba(255,92,106,0.4);
+  box-shadow: 0 4px 16px rgba(255,92,106,0.1);
 }
 
 .bbs-btn-row {
@@ -186,27 +266,34 @@
 }
 
 .bbs-btn-sm {
-  padding: 4px 8px;
+  padding: 5px 10px;
   font-size: 11px;
 }
 
-/* 复选框 */
+/* ═══ 复选框 ═══ */
 .bbs-checkbox {
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;font-size: 13px;
+  cursor: pointer;
+  font-size: 13px;
   color: var(--bbs-text);
-  padding: 4px 0;
+  padding: 5px 0;
+  transition: color 0.15s;
+}
+
+.bbs-checkbox:hover {
+  color: var(--bbs-text-bright);
 }
 
 .bbs-checkbox input[type="checkbox"] {
   width: 16px !important;
   height: 16px !important;
   accent-color: var(--bbs-accent);
+  cursor: pointer;
 }
 
-/* 行内两列 */
+/* ═══ 行内两列 ═══ */
 .bbs-row {
   display: flex;
   gap: 8px;
@@ -217,153 +304,224 @@
   flex: 1;
 }
 
-/* 分割线 */
+/* ═══ 分割线 ═══ */
 .bbs-divider {
   border: none;
   border-top: 1px solid var(--bbs-border);
-  margin: 12px 0;
+  margin: 14px 0;
 }
 
-/* 版本信息 */
+/* ═══ 版本信息 ═══ */
 .bbs-version {
   text-align: center;
-  padding: 8px;
+  padding: 10px;
   font-size: 11px;
   color: var(--bbs-text-dim);
-  border-top: 1px solid var(--bbs-border);margin: 8px;
+  border-top: 1px solid var(--bbs-border);
+  margin: 8px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
 }
 
-/* 预设编辑器 */
+/* ═══ 预设编辑器 ═══ */
 #bb-preset-editor,
 #bb-ooc-preset-editor {
   display: none;
-  padding: 12px;
+  padding: 14px;
   border-top: 1px solid var(--bbs-border);
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.25);
+  border-radius: 0 0 var(--bbs-radius) var(--bbs-radius);
 }
 
-/* 布局选项卡 */
+/* ═══ 布局选项卡 ═══ */
 .bb-layout-option {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 8px 14px;
   border: 1px solid var(--bbs-border);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
   color: var(--bbs-text-dim);
   background: var(--bbs-bg-input);
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
 
 .bb-layout-option:hover {
   border-color: var(--bbs-border-focus);
+  color: var(--bbs-text);
 }
 
 .bb-layout-option.active {
   border-color: var(--bbs-accent);
   color: var(--bbs-accent);
-  background: rgba(201,160,220,0.08);
+  background: var(--bbs-accent-glow);
+  box-shadow: 0 0 12px var(--bbs-accent-glow);
 }
 
-/* CSS模板按钮 */
+/* ═══ CSS模板按钮 ═══ */
 .bb-css-tpl-btn {
   display: inline-flex;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border: 1px solid var(--bbs-border);
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 11px;
   cursor: pointer;
   background: var(--bbs-bg-input);
   color: var(--bbs-text-dim);
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
 
 .bb-css-tpl-btn:hover {
   border-color: var(--bbs-accent);
   color: var(--bbs-accent);
+  box-shadow: 0 0 8px var(--bbs-accent-glow);
 }
 
-/*歌单列表 */
+/* ═══ 歌单列表 ═══ */
 #bb-music-playlist-list {
   max-height: 200px;
   overflow-y: auto;
   border: 1px solid var(--bbs-border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--bbs-bg-input);
 }
 
-/*滚动条 */
+/* ═══ 滚动条 ═══ */
 #bb-settings-panel ::-webkit-scrollbar {
   width: 4px;
 }
+#bb-settings-panel ::-webkit-scrollbar-track {
+  background: transparent;
+}
 #bb-settings-panel ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: rgba(155,109,255,0.2);
   border-radius: 2px;
 }
+#bb-settings-panel ::-webkit-scrollbar-thumb:hover {
+  background: rgba(155,109,255,0.35);
+}
 
-/* 主题切换动画 */
+/* ═══ 主题切换动画 ═══ */
 #bb-settings-panel {
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
-/*── 主题变体 ── */
-#bb-settings-panel.bbs-theme-purple {
-  --bbs-bg: #0e0a14;
-  --bbs-bg-section: #1a1228;
-  --bbs-bg-input: #241a36;
-  --bbs-bg-hover: #2e2240;
-  --bbs-border: rgba(201,160,220,0.12);
-  --bbs-border-focus: rgba(201,160,220,0.3);
-  --bbs-accent: #c9a0dc;
-  --bbs-accent-dark: #a374c0;
+/* ═══ 主题切换按钮栏 ═══ */
+.bbs-theme-bar {
+  display: flex;
+  gap: 4px;
+  padding: 10px 12px;
+  justify-content: center;
+  border-bottom: 1px solid var(--bbs-border);background: rgba(0,0,0,0.2);
 }
 
+.bbs-settings-theme {
+  position: relative;
+}
+
+.bbs-settings-theme.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  background: var(--bbs-accent);border-radius: 1px;
+}
+
+/*══════════════════════════════════════════主题变体— 每个主题有显著视觉差异
+══════════════════════════════════════════ */
+
+/* 🩸 哥特 — 深红血色，暗黑教堂感 */
 #bb-settings-panel.bbs-theme-gothic {
-  --bbs-bg: #0a0808;
-  --bbs-bg-section: #151010;
-  --bbs-bg-input: #1a1212;
-  --bbs-bg-hover: #251a1a;
-  --bbs-border: rgba(200,80,80,0.1);
-  --bbs-border-focus: rgba(200,80,80,0.25);
-  --bbs-accent: #c85050;
-  --bbs-accent-dark: #a03030;
+  --bbs-bg: #080404;
+  --bbs-bg-section: #120808;
+  --bbs-bg-input: #180c0c;
+  --bbs-bg-hover: #241212;
+  --bbs-border: rgba(180,40,40,0.1);
+  --bbs-border-focus: rgba(200,60,60,0.3);
+  --bbs-text: #c8a8a8;
+  --bbs-text-dim: #885858;
+  --bbs-text-bright: #f0d0d0;
+  --bbs-accent: #c83030;
+  --bbs-accent-dark: #901818;
+  --bbs-accent-glow: rgba(200,48,48,0.15);
+  --bbs-danger: #ff4040;
+  --bbs-success: #40a060;
+  --bbs-header-gradient: linear-gradient(135deg, #1004040%, #180808 50%, #0c0202 100%);
+  --bbs-glow-line: linear-gradient(90deg, transparent, #c83030 30%, #c83030 70%, transparent);
 }
 
+/* 💜紫调 — 深紫星空，神秘魔法感 */
+#bb-settings-panel.bbs-theme-purple {
+  --bbs-bg: #06040e;
+  --bbs-bg-section: #0e0818;
+  --bbs-bg-input: #140c22;
+  --bbs-bg-hover: #1e1430;
+  --bbs-border: rgba(160,100,240,0.1);
+  --bbs-border-focus: rgba(180,120,255,0.3);
+  --bbs-text: #c0b0e0;
+  --bbs-text-dim: #7860a8;
+  --bbs-text-bright: #e8d8ff;
+  --bbs-accent: #a855f7;
+  --bbs-accent-dark: #7c3aed;
+  --bbs-accent-glow: rgba(168,85,247,0.15);
+  --bbs-danger: #f472b6;
+  --bbs-success: #34d399;
+  --bbs-header-gradient: linear-gradient(135deg, #08041a 0%, #120828 50%, #060214 100%);
+  --bbs-glow-line: linear-gradient(90deg, transparent, #a855f7 20%, #7c3aed 50%, #a855f7 80%, transparent);
+}
+
+/* 🌊 海洋 — 深海蓝绿，赛博科技感 */
 #bb-settings-panel.bbs-theme-ocean {
-  --bbs-bg: #080e14;
-  --bbs-bg-section: #0e1820;
-  --bbs-bg-input: #122030;
-  --bbs-bg-hover: #1a2a3a;
-  --bbs-border: rgba(100,180,220,0.1);
-  --bbs-border-focus: rgba(100,180,220,0.25);
-  --bbs-accent: #64b4dc;
-  --bbs-accent-dark: #4090b0;
+  --bbs-bg: #020a0e;
+  --bbs-bg-section: #061218;
+  --bbs-bg-input: #081a24;
+  --bbs-bg-hover: #0c2430;
+  --bbs-border: rgba(0,200,220,0.08);
+  --bbs-border-focus: rgba(0,220,240,0.25);
+  --bbs-text: #90c8d8;
+  --bbs-text-dim: #4888a0;
+  --bbs-text-bright: #c0f0ff;
+  --bbs-accent: #06b6d4;
+  --bbs-accent-dark: #0891b2;
+  --bbs-accent-glow: rgba(6,182,212,0.12);
+  --bbs-danger: #f97316;
+  --bbs-success: #10b981;
+  --bbs-header-gradient: linear-gradient(135deg, #020c14 0%, #041420 50%, #020810 100%);
+  --bbs-glow-line: linear-gradient(90deg, transparent, #06b6d4 20%, #22d3ee 50%, #06b6d4 80%, transparent);
 }
 
+/* ⬜ 黑白 — 纯粹灰阶，极简克制 */
 #bb-settings-panel.bbs-theme-monochrome {
-  --bbs-bg: #0a0a0a;
-  --bbs-bg-section: #141414;
-  --bbs-bg-input: #1a1a1a;
-  --bbs-bg-hover: #222;
+  --bbs-bg: #080808;
+  --bbs-bg-section: #101010;
+  --bbs-bg-input: #161616;
+  --bbs-bg-hover: #1e1e1e;
   --bbs-border: rgba(255,255,255,0.06);
-  --bbs-border-focus: rgba(255,255,255,0.2);
-  --bbs-accent: #999;
-  --bbs-accent-dark: #666;
+  --bbs-border-focus: rgba(255,255,255,0.18);
+  --bbs-text: #a0a0a0;
+  --bbs-text-dim: #606060;
+  --bbs-text-bright: #d0d0d0;
+  --bbs-accent: #888;
+  --bbs-accent-dark: #555;
+  --bbs-accent-glow: rgba(255,255,255,0.05);
+  --bbs-danger: #c06060;
+  --bbs-success: #60a060;
+  --bbs-header-gradient: linear-gradient(135deg, #0a0a0a 0%, #121212 50%, #080808 100%);
+  --bbs-glow-line: linear-gradient(90deg, transparent, #666 30%, #666 70%, transparent);
 }
-     /*═══════════════════════════════════════════
-   作者的话 — 样式
-   ═══════════════════════════════════════════ */
 
-/* 引入字体 */
-/* 引入字体 — 哥特 +衬线 + 等宽 */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=MedievalSharp&family=UnifrakturMaguntia&family=Noto+Serif+SC:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
+/*═══════════════════════════════════════════
+  作者的话 — 样式
+═══════════════════════════════════════════ */
 
 /* 作者区块特殊样式 */
 .bbs-author-section {
-  border: 1px solid rgba(201, 160, 220, 0.12) !important;
+  border: 1px solid rgba(155, 109, 255, 0.1) !important;
   overflow: hidden;
   position: relative;
 }
@@ -375,17 +533,25 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg,
-    transparent,
-    var(--bbs-accent, #c9a0dc) 20%,
-    var(--bbs-accent, #c9a0dc) 80%,
-    transparent
-  );opacity: 0.6;
+  background: var(--bbs-glow-line);
+  opacity: 0.7;
+}
+
+/* 作者区块底部也加装饰线 */
+.bbs-author-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--bbs-glow-line);
+  opacity: 0.3;
 }
 
 .bbs-author-section .bbs-section-header {
   background: linear-gradient(135deg,
-    rgba(201, 160, 220, 0.05),
+    rgba(155, 109, 255, 0.06),
     rgba(240, 168, 200, 0.03)
   );
 }
@@ -398,7 +564,7 @@
 
 @keyframes bb-bone-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+  50% { opacity: 0.7; transform: scale(1.1) rotate(5deg); }
 }
 
 .bbs-author-title-text {
@@ -406,7 +572,7 @@
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 2px;
-  background: linear-gradient(135deg, var(--bbs-accent, #c9a0dc), #f0a8c8);
+  background: linear-gradient(135deg, var(--bbs-accent, #9b6dff), #f0a8c8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -415,39 +581,54 @@
 .bbs-version-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 10px;
-  background: rgba(201, 160, 220, 0.15);
-  color: var(--bbs-accent, #c9a0dc);
-  border: 1px solid rgba(201, 160, 220, 0.2);
+  background: var(--bbs-accent-glow);
+  color: var(--bbs-accent, #9b6dff);
+  border: 1px solid rgba(155, 109, 255, 0.2);
   margin-left: 6px;
+  letter-spacing: 0.5px;
 }
 
 /* 作者卡片头部 */
 .bbs-author-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 14px;
+  padding: 18px;
   background: linear-gradient(135deg,
-    rgba(201, 160, 220, 0.06),
-    rgba(0, 0, 0, 0.2)
+    rgba(155, 109, 255, 0.06),
+    rgba(0, 0, 0, 0.3)
   );
-  border-bottom: 1px solid var(--bbs-border);
+  border-bottom: 1px solid var(--bbs-border);position: relative;
+}
+
+/* 头部背景装饰 */
+.bbs-author-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, var(--bbs-accent-glow) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .bbs-author-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #a374c0, #d87ea8);
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--bbs-accent-dark, #7b4dd0), #d87ea8);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 24px;
   color: #fff;
   font-family: 'Noto Serif SC', serif;
-  font-weight: 700;flex-shrink: 0;box-shadow: 0 4px 15px rgba(163, 116, 192, 0.3);
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(155, 109, 255, 0.25);
   position: relative;
 }
 
@@ -455,14 +636,14 @@
   content: '';
   position: absolute;
   inset: -2px;
-  border-radius: 14px;
-  border: 1px solid rgba(201, 160, 220, 0.3);
+  border-radius: 16px;
+  border: 1px solid rgba(155, 109, 255, 0.25);
   animation: bb-avatar-glow 4s ease-in-out infinite;
 }
 
 @keyframes bb-avatar-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 160, 220, 0); }
-  50% { box-shadow: 0 0 12px 2px rgba(201, 160, 220, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(155, 109, 255, 0); }
+  50% { box-shadow: 0 0 16px 3px rgba(155, 109, 255, 0.2); }
 }
 
 .bbs-author-info {
@@ -473,31 +654,29 @@
 .bbs-author-name {
   font-family: 'Cinzel','Noto Serif SC', serif;
   font-weight: 700;
-  font-size: 16px;
-  color: var(--bbs-text-bright, #eee);
+  font-size: 17px;
+  color: var(--bbs-text-bright, #e0d8f0);
   letter-spacing: 2px;
 }
-     
 .bbs-author-sub {
   font-family: 'Noto Serif SC', serif;
   font-size: 11px;
-  color: var(--bbs-text-dim, #888);
+  color: var(--bbs-text-dim, #706888);
   margin-left: 6px;
   font-weight: 400;
 }
 
-
 .bbs-author-tagline {
   font-family: 'Noto Serif SC', serif;
   font-size: 12px;
-  color: var(--bbs-text-dim, #888);
-  margin-top: 4px;
+  color: var(--bbs-text-dim, #706888);
+  margin-top: 5px;
   letter-spacing: 3px;
   opacity: 0.8;
   font-style: italic;
 }
 
-/* 快捷链接按钮 */
+/*═══ 快捷链接按钮 ═══ */
 .bbs-author-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -509,23 +688,35 @@
 .bbs-author-link-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--bbs-bg-input, #1a1a1a);
-  border: 1px solid var(--bbs-border, rgba(255,255,255,0.06));
-  color: var(--bbs-text, #ccc);
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bbs-bg-input, #12121a);
+  border: 1px solid var(--bbs-border);
+  color: var(--bbs-text, #b8b0c8);
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   text-decoration: none;
   font-family: 'Cinzel', 'JetBrains Mono', serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.bbs-author-link-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);
+  pointer-events: none;
 }
 
 .bbs-author-link-btn:hover {
-  background: var(--bbs-bg-hover, #222);
-  border-color: var(--bbs-accent, #c9a0dc);
-  color: var(--bbs-accent, #c9a0dc);transform: translateY(-1px);box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: var(--bbs-bg-hover, #1a1a24);
+  border-color: var(--bbs-accent, #9b6dff);
+  color: var(--bbs-accent, #9b6dff);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .bbs-link-icon {
@@ -533,19 +724,19 @@
   flex-shrink: 0;
 }
 
-/* 弹出信息区 */
+/* ═══ 弹出信息区═══ */
 .bbs-author-msg-area {
   padding: 0 12px;
   overflow: hidden;
 }
 
 .bbs-author-msg-content {
-  padding: 12px 14px;
+  padding: 14px 16px;
   margin: 8px 0;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
   line-height: 1.7;
-  font-family: 'Cinzel', 'JetBrains Mono', serif;
+  font-family: 'Noto Serif SC', serif;
   animation: bbs-msg-appear 0.3s ease;position: relative;
 }
 
@@ -555,58 +746,59 @@
 }
 
 .bbs-author-msg-content.bbs-msg-bug {
-  background: rgba(232, 120, 120, 0.08);
-  border: 1px solid rgba(232, 120, 120, 0.2);color: #f0a0a0;
+  background: rgba(255, 64, 64, 0.06);
+  border: 1px solid rgba(255, 64, 64, 0.15);
+  color: #f0a0a0;
 }
 
 .bbs-author-msg-content.bbs-msg-group {
-  background: rgba(100, 180, 220, 0.08);
-  border: 1px solid rgba(100, 180, 220, 0.2);
+  background: rgba(6, 182, 212, 0.06);
+  border: 1px solid rgba(6, 182, 212, 0.15);
   color: #90c8e8;
 }
 
 .bbs-author-msg-content.bbs-msg-support {
-  background: rgba(201, 160, 220, 0.08);
-  border: 1px solid rgba(201, 160, 220, 0.2);
-  color: var(--bbs-accent, #c9a0dc);
+  background: rgba(155, 109, 255, 0.06);
+  border: 1px solid rgba(155, 109, 255, 0.15);
+  color: var(--bbs-accent, #9b6dff);
 }
 
 .bbs-author-msg-content .bbs-msg-close {
   position: absolute;
-  top: 6px;
-  right: 8px;
+  top: 8px;
+  right: 10px;
   cursor: pointer;
-  opacity: 0.5;
+  opacity: 0.4;
   font-size: 14px;
+  transition: opacity 0.15s;
 }
 
 .bbs-author-msg-content .bbs-msg-close:hover {
   opacity: 1;
 }
 
-/* 更新日志 */
+/* ═══ 更新日志 ═══ */
 .bbs-author-changelog {
-  padding: 12px;
+  padding: 14px;
 }
 
 .bbs-changelog-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Orbitron','JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   font-weight: 600;
-  color: var(--bbs-text-bright, #eee);
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  color: var(--bbs-text-bright, #e0d8f0);letter-spacing: 0.5px;
+  margin-bottom: 12px;
 }
 
 .bbs-changelog-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--bbs-accent, #c9a0dc);
-  box-shadow: 0 0 8px var(--bbs-accent, #c9a0dc);
+  background: var(--bbs-accent, #9b6dff);
+  box-shadow: 0 0 10px var(--bbs-accent, #9b6dff);
   animation: bb-dot-blink 2s ease-in-out infinite;
 }
 
@@ -619,7 +811,7 @@
   margin-left: auto;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: var(--bbs-text-dim, #888);
+  color: var(--bbs-text-dim, #706888);
   font-weight: 400;
 }
 
@@ -634,13 +826,13 @@
 }
 
 .bbs-changelog-body::-webkit-scrollbar-thumb {
-  background: rgba(201, 160, 220, 0.2);
+  background: rgba(155, 109, 255, 0.2);
   border-radius: 2px;
 }
 
 .bbs-changelog-entry {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--bbs-border);
 }
 
@@ -652,8 +844,8 @@
   font-family: 'Cinzel', 'JetBrains Mono', serif;
   font-size: 13px;
   font-weight: 600;
-  color: var(--bbs-accent, #c9a0dc);
-  margin-bottom: 6px;
+  color: var(--bbs-accent, #9b6dff);
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -661,29 +853,29 @@
 
 .bbs-changelog-tag {
   font-size: 9px;
-  padding: 1px 5px;
-  border-radius: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .bbs-tag-new {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: rgba(61, 214, 140, 0.15);
+  color: #3dd68c;
+  border: 1px solid rgba(61, 214, 140, 0.25);
 }
 
 .bbs-tag-fix {
-  background: rgba(255, 152, 0, 0.2);
+  background: rgba(255, 152, 0, 0.15);
   color: #ff9800;
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  border: 1px solid rgba(255, 152, 0, 0.25);
 }
 
 .bbs-tag-breaking {
-  background: rgba(232, 120, 120, 0.2);
-  color: #e87878;
-  border: 1px solid rgba(232, 120, 120, 0.3);
+  background: rgba(255, 92, 106, 0.15);
+  color: #ff5c6a;
+  border: 1px solid rgba(255, 92, 106, 0.25);
 }
 
 .bbs-changelog-list {
@@ -694,10 +886,10 @@
 
 .bbs-changelog-list li {
   font-size: 12px;
-  color: var(--bbs-text, #ccc);
-  padding: 3px 0 3px 16px;
+  color: var(--bbs-text, #b8b0c8);
+  padding: 3px 0 3px 18px;
   position: relative;
-  line-height: 1.5;
+  line-height: 1.6;
   font-family: 'Noto Serif SC', system-ui, sans-serif;
 }
 
@@ -705,20 +897,20 @@
   content: '›';
   position: absolute;
   left: 4px;
-  color: var(--bbs-accent, #c9a0dc);
-  font-weight: bold;
+  color: var(--bbs-accent, #9b6dff);font-weight: bold;
+  font-size: 14px;
 }
 
-/* 碎碎念 */
+/* ═══ 碎碎念 ═══ */
 .bbs-author-murmur {
-  margin-top: 12px;
-  padding: 14px;
-  border-radius: 8px;
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 10px;
   background: linear-gradient(135deg,
-    rgba(201, 160, 220, 0.04),
+    rgba(155, 109, 255, 0.04),
     rgba(240, 168, 200, 0.02)
   );
-  border: 1px solid rgba(201, 160, 220, 0.08);
+  border: 1px solid rgba(155, 109, 255, 0.08);
   position: relative;
 }
 
@@ -727,10 +919,10 @@
   position: absolute;
   top: 4px;
   left: 10px;
-  font-size: 36px;
-  font-family: 'Noto Serif SC', serif;
-  color: var(--bbs-accent, #c9a0dc);
-  opacity: 0.15;
+  font-size: 40px;
+  font-family: 'Cinzel Decorative', serif;
+  color: var(--bbs-accent, #9b6dff);
+  opacity: 0.12;
   line-height: 1;
 }
 
@@ -738,15 +930,15 @@
   font-family: 'Cinzel', 'Noto Serif SC', serif;
   font-size: 13px;
   font-weight: 600;
-  color: var(--bbs-text-bright, #eee);
-  margin-bottom: 8px;
+  color: var(--bbs-text-bright, #e0d8f0);
+  margin-bottom: 10px;
   letter-spacing: 1px;
 }
 
 .bbs-author-murmur p {
   font-family: 'Noto Serif SC', serif;
   font-size: 12px;
-  color: var(--bbs-text-dim, #888);
+  color: var(--bbs-text-dim, #706888);
   line-height: 1.8;
   margin: 0 0 6px 0;
   text-indent: 2em;
@@ -755,18 +947,17 @@
 .bbs-murmur-sign {
   text-align: right;
   font-style: italic;
-  color: var(--bbs-text-muted, #666) !important;
+  color: var(--bbs-text-muted, #504868) !important;
   font-size: 11px !important;
   text-indent: 0 !important;
-  margin-top: 8px !important;
+  margin-top: 10px !important;
 }
 
-     /* ═══════════════════════════════════════════
-   作品展示
-   ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════作品展示
+═══════════════════════════════════════════ */
 
 .bbs-author-works {
-  padding: 12px;
+  padding: 14px;
   border-bottom: 1px solid var(--bbs-border);
 }
 
@@ -778,13 +969,13 @@
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 12px;
   font-weight: 600;
-  color: var(--bbs-text-dim, #888);
+  color: var(--bbs-text-dim, #706888);
   letter-spacing: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .bbs-works-cross {
-  color: var(--bbs-accent, #c9a0dc);
+  color: var(--bbs-accent, #9b6dff);
   opacity: 0.5;
   font-size: 10px;
 }
@@ -798,13 +989,14 @@
 .bbs-work-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--bbs-bg-input, #1a1a1a);
-  border: 1px solid var(--bbs-border, rgba(255,255,255,0.06));
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bbs-bg-input, #12121a);
+  border: 1px solid var(--bbs-border);
   cursor: pointer;
-  transition: all 0.25s;position: relative;
+  transition: all 0.25s;
+  position: relative;
   overflow: hidden;
 }
 
@@ -832,41 +1024,42 @@
 }
 
 .bbs-work-card:hover {
-  border-color: rgba(255,255,255,0.12);
-  transform: translateX(4px);
-  background: var(--bbs-bg-hover, #222);
+  border-color: rgba(255,255,255,0.1);
+  transform: translateX(6px);
+  background: var(--bbs-bg-hover, #1a1a24);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 .bbs-work-card:hover::before {
   width: 4px;
-  box-shadow: 0 0 12px currentColor;
 }
 
-.bbs-work-gemini:hover::before { box-shadow: 0 0 12px rgba(123,104,238,0.4); }
-.bbs-work-claude:hover::before { box-shadow: 0 0 12px rgba(212,165,116,0.4); }
-.bbs-work-fire:hover::before { box-shadow: 0 0 12px rgba(232,80,80,0.4); }
+.bbs-work-gemini:hover::before { box-shadow: 0 0 14px rgba(123,104,238,0.4); }
+.bbs-work-claude:hover::before { box-shadow: 0 0 14px rgba(212,165,116,0.4); }
+.bbs-work-fire:hover::before { box-shadow: 0 0 14px rgba(232,80,80,0.4); }
 
 .bbs-work-icon {
   font-size: 22px;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 10px;
   background: rgba(255,255,255,0.03);
   flex-shrink: 0;
 }
 
 .bbs-work-info {
-  flex: 1;min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .bbs-work-name {
   font-family: 'Noto Serif SC', serif;
   font-size: 13px;
   font-weight: 600;
-  color: var(--bbs-text-bright, #eee);
+  color: var(--bbs-text-bright, #e0d8f0);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -876,8 +1069,8 @@
 .bbs-work-tag {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: var(--bbs-text-muted, #666);
-  margin-top: 2px;
+  color: var(--bbs-text-muted, #504868);
+  margin-top: 3px;
   letter-spacing: 0.5px;
 }
 
@@ -887,23 +1080,24 @@
 
 .bbs-work-arrow {
   font-size: 18px;
-  color: var(--bbs-text-muted, #666);
-  flex-shrink: 0;transition: transform 0.2s;
+  color: var(--bbs-text-muted, #504868);
+  flex-shrink: 0;transition: transform 0.2s, color 0.2s;
 }
 
 .bbs-work-card:hover .bbs-work-arrow {
-  transform: translateX(3px);
-  color: var(--bbs-text-dim, #888);
+  transform: translateX(4px);
+  color: var(--bbs-text-dim, #706888);
 }
-     /* ═══════════════════════════════════════════
-   自定义字体预览
-   ═══════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════
+  自定义字体预览
+═══════════════════════════════════════════ */
 
 .bbs-font-preview {
-  padding: 14px;
-  margin: 8px 0;
+  padding: 16px;
+  margin: 10px 0;
   border: 1px solid var(--bbs-border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--bbs-bg-input);
   text-align: center;
 }
@@ -916,35 +1110,35 @@
 }
 
 .bbs-font-quick {
-  transition: all 0.15s !important;
+  transition: all 0.2s !important;
 }
 
 .bbs-font-quick:hover {
   border-color: var(--bbs-accent) !important;
   color: var(--bbs-accent) !important;
-  transform: translateY(-1px);
+  transform: translateY(-2px);box-shadow: 0 4px 12px var(--bbs-accent-glow) !important;
 }
-
 
 </style>
 
 <div id="bb-settings-panel">
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
-      <b>🦴 骨与血 Bone & Blood</b>
+      <b>🦴骨与血Bone & Blood</b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
 
-      <!-- ═══ 设置面板主题切换 ═══ -->
-      <div style="display:flex;gap:4px;padding:8px;justify-content:center;border-bottom:1px solid var(--bbs-border);">
-        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="">🖤 暗黑</button>
+      <!--═══ 设置面板主题切换 ═══ -->
+      <div class="bbs-theme-bar">
+        <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="">🖤暗黑</button>
         <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="purple">💜 紫调</button>
         <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="gothic">🩸 哥特</button>
         <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="ocean">🌊 海洋</button>
         <button class="bbs-btn bbs-btn-sm bbs-settings-theme" data-theme="monochrome">⬜ 黑白</button>
       </div>
-               <!--═══ 0. 作者的话 ═══ -->
+
+      <!--═══ 0. 作者的话 ═══ -->
       <div class="bbs-section bbs-author-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">
@@ -956,7 +1150,7 @@
         </div>
         <div class="bbs-section-body" style="padding:0;">
 
-          <!-- 作者卡片头部 -->
+          <!--作者卡片头部 -->
           <div class="bbs-author-header">
             <div class="bbs-author-avatar">影</div>
             <div class="bbs-author-info">
@@ -989,7 +1183,8 @@
           <div id="bb-author-msg-area" class="bbs-author-msg-area" style="display:none;">
             <div id="bb-author-msg-content" class="bbs-author-msg-content"></div>
           </div>
-                       <!-- 作品展示 -->
+
+          <!-- 作品展示 -->
           <div class="bbs-author-works">
             <div class="bbs-works-title">
               <span class="bbs-works-cross">✦</span>
@@ -1003,14 +1198,13 @@
                 <div class="bbs-work-info">
                   <div class="bbs-work-name">安息日的个人演出show!</div>
                   <div class="bbs-work-tag">Gemini 预设</div>
-                </div>
-                <div class="bbs-work-arrow">›</div>
+                </div><div class="bbs-work-arrow">›</div>
               </div>
 
               <div class="bbs-work-card bbs-work-claude" onclick="window.open('','_blank')">
                 <div class="bbs-work-icon">⚡</div>
                 <div class="bbs-work-info">
-                  <div class="bbs-work-name">过载 is online</div>
+                  <div class="bbs-work-name">过载is online</div>
                   <div class="bbs-work-tag">Claude 预设</div>
                 </div>
                 <div class="bbs-work-arrow">›</div>
@@ -1027,7 +1221,6 @@
             </div>
           </div>
 
-
           <!-- 更新日志 /碎碎念 -->
           <div class="bbs-author-changelog">
             <div class="bbs-changelog-title">
@@ -1037,11 +1230,10 @@
             </div>
             <div class="bbs-changelog-body">
 
-              <!-- ═══════════════════════════════════✏️ 每次更新只需要修改这里面的内容！
-                   ═══════════════════════════════════ -->
+              <!--═══════════════════════════════════✏️ 每次更新只需要修改这里面的内容！═══════════════════════════════════ -->
 
               <div class="bbs-changelog-entry">
-                <div class="bbs-changelog-ver">v7.1 <span class="bbs-changelog-tag bbs-tag-new">NEW</span></div>
+                <div class="bbs-changelog-ver">v7.1<span class="bbs-changelog-tag bbs-tag-new">NEW</span></div>
                 <ul class="bbs-changelog-list">
                   <li>🎉 全新暗黑风格设置面板，支持5种主题切换</li>
                   <li>🔌 API连接后自动获取模型列表，下拉框选择</li>
@@ -1067,26 +1259,20 @@
               <div class="bbs-author-murmur">
                 <div class="bbs-murmur-title">💭 碎碎念</div>
                 <p>
-                  修改了之前API必须要手填的问题，现在可以直接使用下拉栏了！
-                     因为改代码来来回回改了很多次，所以总是丢三落四的呜呜
+                  修改了之前API必须要手填的问题，现在可以直接使用下拉栏了！因为改代码来来回回改了很多次，所以总是丢三落四的呜呜
                 </p>
-                <p>希望你玩的开心！
-                </p>
+                <p>希望你玩的开心！</p>
                 <p class="bbs-murmur-sign">—— SHADOW ·凌晨三点的碎碎念</p>
               </div>
 
-              <!-- ═══════════════════════════════════
-                   ✏️ 修改到这里结束
+              <!-- ═══════════════════════════════════✏️ 修改到这里结束
                    ═══════════════════════════════════ -->
 
             </div>
           </div>
 
         </div>
-      </div>
-
-
-      <!-- ═══ 1. 基础设置 ═══ -->
+      </div><!-- ═══ 1. 基础设置 ═══ -->
       <div class="bbs-section open">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">⚙️ 基础设置</span>
@@ -1097,27 +1283,22 @@
             <input type="checkbox" id="bb-enabled" />
             <span>启用骨与血插件</span>
           </label>
-                       <label class="bbs-checkbox">
+          <label class="bbs-checkbox">
             <input type="checkbox" id="bb-show-float" />
-            <span>显示悬浮球 🦴</span>
+            <span>显示悬浮球🦴</span>
           </label>
-          <span class="bbs-hint">关闭后可通过设置面板底部的「打开主面板」按钮进入</span>
-
-
-          <hr class="bbs-divider">
+          <span class="bbs-hint">关闭后可通过设置面板底部的「打开主面板」按钮进入</span><hr class="bbs-divider">
 
           <label class="bbs-checkbox">
             <input type="checkbox" id="bb-auto-diary" />
-            <span>自动生成日记 & 总结</span>
+            <span>自动生成日记& 总结</span>
           </label>
 
           <div class="bbs-field">
             <label class="bbs-label">触发条数（每N条消息自动生成）</label>
             <input type="number" id="bb-diary-trigger" min="5" max="200" />
           </div></div>
-      </div>
-
-           <!--═══ 2. 副API配置 ═══ -->
+      </div><!--═══ 2. 副API配置 ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">🔌 副API配置</span>
@@ -1176,14 +1357,15 @@
           </div>
           <div class="bbs-btn-row">
             <button class="bbs-btn" id="bb-preset-edit">✏️ 编辑</button>
-            <button class="bbs-btn" id="bb-preset-new">➕ 新建</button><button class="bbs-btn bbs-btn-danger" id="bb-preset-delete">🗑️ 删除</button>
+            <button class="bbs-btn" id="bb-preset-new">➕ 新建</button>
+            <button class="bbs-btn bbs-btn-danger" id="bb-preset-delete">🗑️ 删除</button>
             <button class="bbs-btn" id="bb-preset-import">📥 导入</button>
             <button class="bbs-btn" id="bb-preset-export">📤 导出</button>
           </div>
 
           <!-- 预设编辑器（展开区域） -->
           <div id="bb-preset-editor">
-            <h5id="bb-preset-editor-title" style="color:var(--bbs-accent);margin:00 10px;">编辑预设</h5>
+            <h5id="bb-preset-editor-title" style="color:var(--bbs-accent);margin:0 0 10px;">编辑预设</h5>
             <div class="bbs-field">
               <label class="bbs-label">预设名称</label>
               <input type="text" id="bb-pe-name" />
@@ -1210,6 +1392,7 @@
           </div>
         </div>
       </div>
+
       <!-- ═══ 4. OOC预设（独立破墙） ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
@@ -1296,8 +1479,7 @@
             <div class="bb-layout-option" data-layout="together">🎧 一起听</div>
             <div class="bb-layout-option" data-layout="dashboard">📊 仪表盘</div>
             <div class="bb-layout-option" data-layout="minimalist">✨ 极简</div>
-          </div>
-        </div>
+          </div></div>
       </div>
 
       <!-- ═══ 8. 风格主题（主面板） ═══ -->
@@ -1313,10 +1495,12 @@
               <option value="modern">🏠 现代</option>
               <option value="ancient">🏮 古风</option>
               <option value="gothic">🕯️ 哥特</option>
-              <option value="monochrome">🖤 黑白</option></select>
+              <option value="monochrome">🖤黑白</option>
+            </select>
           </div></div>
       </div>
-               <!-- ═══ 9. 自定义字体 ═══ -->
+
+      <!-- ═══ 9. 自定义字体 ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">🔤 自定义字体</span>
@@ -1325,11 +1509,13 @@
         <div class="bbs-section-body">
           <div class="bbs-field">
             <label class="bbs-label">字体URL（Google Fonts / 其他CDN）</label>
-            <input type="text" id="bb-custom-font-url" placeholder="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" /><span class="bbs-hint">粘贴 Google Fonts 的@import URL，或任意CSS 字体文件链接</span>
+            <input type="text" id="bb-custom-font-url" placeholder="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" />
+            <span class="bbs-hint">粘贴 Google Fonts 的@import URL，或任意CSS字体文件链接</span>
           </div>
           <div class="bbs-field">
             <label class="bbs-label">字体名称（填入 font-family 的值）</label>
-            <input type="text" id="bb-custom-font-name" placeholder="Ma Shan Zheng" /><span class="bbs-hint">必须和字体URL中的名称一致</span>
+            <input type="text" id="bb-custom-font-name" placeholder="Ma Shan Zheng" />
+            <span class="bbs-hint">必须和字体URL中的名称一致</span>
           </div>
           <div class="bbs-field">
             <label class="bbs-label">应用范围</label>
@@ -1337,8 +1523,7 @@
               <label class="bbs-checkbox"><input type="checkbox" id="bb-font-apply-panel" /><span>主面板全局</span></label>
               <label class="bbs-checkbox"><input type="checkbox" id="bb-font-apply-title" /><span>标题 & Tab按钮</span></label>
               <label class="bbs-checkbox"><input type="checkbox" id="bb-font-apply-content" /><span>内容 & 日记& 总结</span></label>
-              <label class="bbs-checkbox"><input type="checkbox" id="bb-font-apply-ooc" /><span>OOC聊天窗口</span></label>
-            </div>
+              <label class="bbs-checkbox"><input type="checkbox" id="bb-font-apply-ooc" /><span>OOC聊天窗口</span></label></div>
           </div>
 
           <!-- 预设字体快捷选择 -->
@@ -1365,7 +1550,7 @@
         </div>
       </div>
 
-      <!-- ═══ 9. 自定义CSS ═══ -->
+      <!-- ═══ 10. 自定义CSS ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">🎨 自定义CSS</span>
@@ -1376,8 +1561,7 @@
             <button class="bb-css-tpl-btn" data-tpl="glow">✨ 发光</button>
             <button class="bb-css-tpl-btn" data-tpl="round">🔵 圆润</button>
             <button class="bb-css-tpl-btn" data-tpl="sharp">🔷 锐利</button>
-            <button class="bb-css-tpl-btn" data-tpl="neon">💡 霓虹</button>
-          </div>
+            <button class="bb-css-tpl-btn" data-tpl="neon">💡 霓虹</button></div>
           <div class="bbs-field">
             <textarea id="bb-custom-css" rows="8" placeholder="/* 在这里输入自定义CSS */"></textarea>
           </div><div class="bbs-btn-row">
@@ -1392,7 +1576,7 @@
         </div>
       </div>
 
-      <!-- ═══ 10. 音乐播放器 ═══ -->
+      <!-- ═══ 11. 音乐播放器 ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">🎵 音乐播放器</span>
@@ -1404,7 +1588,8 @@
             <input type="text" id="bb-music-search-api" placeholder="https://api.xxx.com/search?keyword={keyword}" />
             <span class="bbs-hint">URL中用{keyword} 作为搜索关键词占位符</span>
           </div>
-          <button class="bbs-btn" id="bb-music-test-search-api" style="margin-bottom:10px;">🔗 测试搜索API</button><hr class="bbs-divider">
+          <button class="bbs-btn" id="bb-music-test-search-api" style="margin-bottom:10px;">🔗 测试搜索API</button>
+          <hr class="bbs-divider">
 
           <div class="bbs-field">
             <label class="bbs-label">添加歌曲</label>
@@ -1437,7 +1622,7 @@
         </div>
       </div>
 
-      <!-- ═══ 11. 数据管理 ═══ -->
+      <!-- ═══ 12. 数据管理 ═══ -->
       <div class="bbs-section">
         <div class="bbs-section-header" onclick="$(this).parent().toggleClass('open')">
           <span class="bbs-section-title">💾 数据管理</span>
@@ -1446,22 +1631,21 @@
         <div class="bbs-section-body">
           <div class="bbs-btn-row">
             <button class="bbs-btn" id="bb-export-md">📄 导出Markdown</button>
-            <button class="bbs-btn" id="bb-export-json">📦 导出JSON</button>
-          </div>
+            <button class="bbs-btn" id="bb-export-json">📦 导出JSON</button></div>
           <hr class="bbs-divider">
           <button class="bbs-btn bbs-btn-danger" id="bb-clear-data" style="width:100%;">⚠️ 清空当前聊天的所有骨与血数据</button>
         </div>
       </div>
 
       <!-- ═══ 版本信息 ═══ -->
-               <!-- 无悬浮球时的备用入口 -->
-      <div style="padding:0 8px 8px;">
+      <!--无悬浮球时的备用入口 -->
+      <div style="padding:0 10px 8px;">
         <button class="bbs-btn bbs-btn-primary" id="bb-open-panel-btn" style="width:100%;">🦴 打开主面板</button>
       </div>
 
-      <div class="bbs-version">
-        🦴骨与血 v7.1· By SHADOW&lt;安息之影&gt; © 2026
-      </div></div>
+      <div class="bbs-version">🦴骨与血 v7.1· By SHADOW&lt;安息之影&gt; © 2026
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1483,11 +1667,13 @@
     }
     
     // 高亮当前按钮
-    $('.bbs-settings-theme').css({ 'border-color': '', 'color': '' });
-    $(this).css({ 'border-color':'var(--bbs-accent)', 'color': 'var(--bbs-accent)' });
+    $('.bbs-settings-theme').css({ 'border-color': '', 'color': '' }).removeClass('active');
+    $(this).css({ 'border-color':'var(--bbs-accent)', 'color': 'var(--bbs-accent)' }).addClass('active');
+
     // 保存到localStorage
     localStorage.setItem('bb-settings-theme', theme);
   });
+
   // 恢复上次选择的设置面板主题
   const savedTheme = localStorage.getItem('bb-settings-theme');
   if (savedTheme) {
@@ -1495,10 +1681,17 @@
     if (panel) panel.classList.add('bbs-theme-' + savedTheme);$(`.bbs-settings-theme[data-theme="${savedTheme}"]`).css({ 
       'border-color': 'var(--bbs-accent)', 
       'color': 'var(--bbs-accent)' 
-    });
+    }).addClass('active');
+  } else {
+    // 默认高亮暗黑按钮
+    $('.bbs-settings-theme[data-theme=""]').css({ 
+      'border-color': 'var(--bbs-accent)', 
+      'color': 'var(--bbs-accent)' 
+    }).addClass('active');
   }
-})();
-       const authorMessages = {
+
+  // 作者的话—弹出信息
+  const authorMessages = {
     bug: {
       cls: 'bbs-msg-bug',
       html: '🐛 <b>反馈BUG</b><br>可以在帖子内留言哦！也欢迎到GitHub提Issue~<br><a href="https://github.com/loud23for-ship-it/SillyTavern-BoneandBloodbyshadow/issues" target="_blank" style="color:inherit;text-decoration:underline;">前往GitHub Issues →</a>'
@@ -1537,6 +1730,7 @@
   $(document).on('click', '#bb-author-bug', () => showAuthorMsg('bug'));
   $(document).on('click', '#bb-author-group', () => showAuthorMsg('group'));
   $(document).on('click', '#bb-author-support', () => showAuthorMsg('support'));
-
+})();
 </script>
+
 
