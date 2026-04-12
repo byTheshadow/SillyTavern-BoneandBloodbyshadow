@@ -1230,5 +1230,45 @@
     });
   }
 })();
+       const authorMessages = {
+    bug: {
+      cls: 'bbs-msg-bug',
+      html: '🐛 <b>反馈BUG</b><br>可以在帖子内留言哦！也欢迎到GitHub提Issue~<br><a href="https://github.com/loud23for-ship-it/SillyTavern-BoneandBloodbyshadow/issues" target="_blank" style="color:inherit;text-decoration:underline;">前往GitHub Issues →</a>'
+    },
+    group: {
+      cls: 'bbs-msg-group',
+      html: '💬 <b>交流群</b><br>月光咖啡屋作者个人小群：<b style="font-family:JetBrains Mono,monospace;font-size:15px;letter-spacing:1px;">811831045</b><br>或在社区艾特我！'
+    },
+    support: {
+      cls: 'bbs-msg-support',
+      html: '☕ <b>支持作者</b><br>嘿嘿，开个玩笑，怎么可能收钱！<br><span style="font-size:11px;opacity:0.7;">（只是开个玩笑，对冒犯到的老师很抱歉，因为我觉得还挺有趣的hhh）</span><br><br>如果你玩的开心就是我最大的荣幸 ✨<br>祝你开心，我会努力做的更好的。'
+    }
+  };
+
+  let currentAuthorMsg = null;
+
+  function showAuthorMsg(type) {
+    const $area = $('#bb-author-msg-area');
+    const $content = $('#bb-author-msg-content');
+    const msg = authorMessages[type];
+    if (!msg) return;
+
+    // 如果点击同一个按钮，关闭
+    if (currentAuthorMsg === type) {
+      $area.slideUp(200);
+      currentAuthorMsg = null;
+      return;
+    }
+
+    $content.attr('class', 'bbs-author-msg-content ' + msg.cls);
+    $content.html(msg.html + '<span class="bbs-msg-close" onclick="$(\'#bb-author-msg-area\').slideUp(200)">✕</span>');
+    $area.slideDown(200);
+    currentAuthorMsg = type;
+  }
+
+  $(document).on('click', '#bb-author-bug', () => showAuthorMsg('bug'));
+  $(document).on('click', '#bb-author-group', () => showAuthorMsg('group'));
+  $(document).on('click', '#bb-author-support', () => showAuthorMsg('support'));
+
 </script>
 
