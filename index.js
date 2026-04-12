@@ -1081,19 +1081,10 @@ function injectToExtensionsMenu() {
 
 function toggleMainPanel() {
   const $panel = $('#bb-main-panel');
-  const isMobile = window.innerWidth <= 768;
-  
   if ($panel.is(':visible')) {
     $panel.fadeOut(200);} else {
-    if (isMobile) {
-      // 移动端：直接设置display为flex，用opacity做动画
-      $panel.css({
-        'display': 'flex',
-        'opacity': '0'
-      }).animate({ opacity: 1 }, 200);
-    } else {
-      $panel.fadeIn(200);
-    }try {
+    $panel.css('display', 'flex').hide().fadeIn(200);
+    try {
       $('.drawer-content.openDrawer').removeClass('openDrawer');
       $('.openIcon').removeClass('openIcon');
     } catch (e) {}
