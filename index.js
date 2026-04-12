@@ -1121,7 +1121,7 @@ function createMobileFloatingButton() {
   const btn = document.createElement('div');
   btn.id = 'bb-mobile-float';
   btn.className = 'bb-mobile-float';
-  btn.style.display = s.enabled ? 'flex' : 'none';
+  btn.style.display = (s.enabled && s.show_float_button !== false) ? 'flex' : 'none';
 
   const savedPos = localStorage.getItem('bb_float_pos');
   let posX = window.innerWidth - 60;
