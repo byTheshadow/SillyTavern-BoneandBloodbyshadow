@@ -5424,6 +5424,13 @@ function replaceBBMacros(text) {
     }
     return '(记忆琥珀未加载)';
   });
+    // {{bb_chronicle}} — 最近编年史事件摘要
+  text = text.replace(/\{\{bb_chronicle\}\}/gi, () => {
+    if (typeof generateChronicleMacro === 'function') {
+      return generateChronicleMacro() || '(暂无编年史事件)';
+    }
+    return '(编年史未加载)';
+  });
   return text;
 }
 
