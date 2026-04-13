@@ -4941,7 +4941,127 @@ function bindSettingsPanelEvents() {
     input.click();
   });
 
-  // 数据管理
+    // 📌 记忆琥珀设置绑定
+  // ═══════════════════════════════════════════
+  // 安全检查：如果settings.html中没有记忆琥珀的设置项，跳过
+  if ($('#bb-set-amber-enabled').length > 0) {
+    const ma = s().memory_amber || {};
+
+    // 加载当前值到UI
+    $('#bb-set-amber-enabled').prop('checked', ma.enabled !== false);
+    $('#bb-set-amber-auto-extract').prop('checked', ma.auto_extract !== false);
+    $('#bb-set-amber-interval').val(ma.extract_interval || 15);
+    $('#bb-set-amber-auto-confirm').prop('checked', !!ma.auto_confirm);
+    $('#bb-set-amber-max-facts').val(ma.max_facts_per_character || 100);
+    $('#bb-set-amber-priority').val(ma.priority_algorithm || 'weighted');
+    $('#bb-set-amber-show-confidence').prop('checked', ma.show_confidence !== false);
+    $('#bb-set-amber-show-refs').prop('checked', ma.show_references !== false);
+    $('#bb-set-amber-conflict').prop('checked', ma.conflict_detection !== false);
+    $('#bb-set-amber-threshold').val(ma.conflict_threshold || 0.7);
+    $('#bb-set-amber-threshold-val').text(ma.conflict_threshold || 0.7);
+    $('#bb-set-amber-multi-char').prop('checked', ma.multi_character !== false);
+    $('#bb-set-amber-export-format').val(ma.export_format || 'json');
+
+    // 监听变化 — 启用开关
+    $('#bb-set-amber-enabled').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.enabled = $(this).is(':checked');
+      saveSettingsDebounced();
+      toastr.info(s().memory_amber.enabled ? '记忆琥珀已启用' : '记忆琥珀已关闭');
+    });
+
+    // 自动提取开关
+    $('#bb-set-amber-auto-extract').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.auto_extract = $(this).is(':checked');
+      saveSettingsDebounced();
+      if ($(this).is(':checked') && typeof hookFactExtractionToMessageCounter === 'function') {
+        hookFactExtractionToMessageCounter();
+        toastr.info('自动提取已启用');
+      } else {
+        toastr.info('自动提取已关闭');
+      }
+    });
+
+    // 提取间隔
+    $('#bb-set-amber-interval').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.extract_interval = parseInt($(this).val()) || 15;
+      saveSettingsDebounced();
+    });
+
+    // 自动确认
+    $('#bb-set-amber-auto-confirm').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.auto_confirm = $(this).is(':checked');
+      saveSettingsDebounced();
+      if ($(this).is(':checked')) {
+        toastr.warning('⚠️ 自动确认已启用，事实将不经审核直接添加');
+      }
+    });
+
+    // 每角色最大事实数
+    $('#bb-set-amber-max-facts').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.max_facts_per_character = parseInt($(this).val()) || 100;
+      saveSettingsDebounced();
+    });
+
+    // 优先级算法
+    $('#bb-set-amber-priority').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.priority_algorithm = $(this).val();
+      saveSettingsDebounced();if (typeof renderAmberFacts === 'function') renderAmberFacts();
+    });
+
+    // 显示置信度
+    $('#bb-set-amber-show-confidence').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.show_confidence = $(this).is(':checked');
+      saveSettingsDebounced();
+      if (typeof renderAmberFacts === 'function') renderAmberFacts();
+    });
+
+    // 显示引用次数
+    $('#bb-set-amber-show-refs').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.show_references = $(this).is(':checked');
+      saveSettingsDebounced();
+      if (typeof renderAmberFacts === 'function') renderAmberFacts();
+    });
+
+    // 冲突检测开关
+    $('#bb-set-amber-conflict').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.conflict_detection = $(this).is(':checked');
+      saveSettingsDebounced();});
+
+    // 冲突检测阈值
+    $('#bb-set-amber-threshold').on('input', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      const val = parseFloat($(this).val());
+      s().memory_amber.conflict_threshold = val;
+      $('#bb-set-amber-threshold-val').text(val.toFixed(2));
+      saveSettingsDebounced();
+    });
+
+    // 多角色支持
+    $('#bb-set-amber-multi-char').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.multi_character = $(this).is(':checked');
+      saveSettingsDebounced();
+    });
+
+    // 导出格式
+    $('#bb-set-amber-export-format').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.export_format = $(this).val();
+      saveSettingsDebounced();
+    });
+
+    console.log('[骨与血] 记忆琥珀设置绑定完成');
+  }
+
 
 
   // 数据管理
@@ -4955,6 +5075,127 @@ function bindSettingsPanelEvents() {
     Object.assign(pluginData, createDefaultPluginData());
     renderAll(); toastr.info('数据已清空');
   });
+    // 📌 记忆琥珀设置绑定
+  // ═══════════════════════════════════════════
+  // 安全检查：如果settings.html中没有记忆琥珀的设置项，跳过
+  if ($('#bb-set-amber-enabled').length > 0) {
+    const ma = s().memory_amber || {};
+
+    // 加载当前值到UI
+    $('#bb-set-amber-enabled').prop('checked', ma.enabled !== false);
+    $('#bb-set-amber-auto-extract').prop('checked', ma.auto_extract !== false);
+    $('#bb-set-amber-interval').val(ma.extract_interval || 15);
+    $('#bb-set-amber-auto-confirm').prop('checked', !!ma.auto_confirm);
+    $('#bb-set-amber-max-facts').val(ma.max_facts_per_character || 100);
+    $('#bb-set-amber-priority').val(ma.priority_algorithm || 'weighted');
+    $('#bb-set-amber-show-confidence').prop('checked', ma.show_confidence !== false);
+    $('#bb-set-amber-show-refs').prop('checked', ma.show_references !== false);
+    $('#bb-set-amber-conflict').prop('checked', ma.conflict_detection !== false);
+    $('#bb-set-amber-threshold').val(ma.conflict_threshold || 0.7);
+    $('#bb-set-amber-threshold-val').text(ma.conflict_threshold || 0.7);
+    $('#bb-set-amber-multi-char').prop('checked', ma.multi_character !== false);
+    $('#bb-set-amber-export-format').val(ma.export_format || 'json');
+
+    // 监听变化 — 启用开关
+    $('#bb-set-amber-enabled').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.enabled = $(this).is(':checked');
+      saveSettingsDebounced();
+      toastr.info(s().memory_amber.enabled ? '记忆琥珀已启用' : '记忆琥珀已关闭');
+    });
+
+    // 自动提取开关
+    $('#bb-set-amber-auto-extract').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.auto_extract = $(this).is(':checked');
+      saveSettingsDebounced();
+      if ($(this).is(':checked') && typeof hookFactExtractionToMessageCounter === 'function') {
+        hookFactExtractionToMessageCounter();
+        toastr.info('自动提取已启用');
+      } else {
+        toastr.info('自动提取已关闭');
+      }
+    });
+
+    // 提取间隔
+    $('#bb-set-amber-interval').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.extract_interval = parseInt($(this).val()) || 15;
+      saveSettingsDebounced();
+    });
+
+    // 自动确认
+    $('#bb-set-amber-auto-confirm').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.auto_confirm = $(this).is(':checked');
+      saveSettingsDebounced();
+      if ($(this).is(':checked')) {
+        toastr.warning('⚠️ 自动确认已启用，事实将不经审核直接添加');
+      }
+    });
+
+    // 每角色最大事实数
+    $('#bb-set-amber-max-facts').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.max_facts_per_character = parseInt($(this).val()) || 100;
+      saveSettingsDebounced();
+    });
+
+    // 优先级算法
+    $('#bb-set-amber-priority').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.priority_algorithm = $(this).val();
+      saveSettingsDebounced();if (typeof renderAmberFacts === 'function') renderAmberFacts();
+    });
+
+    // 显示置信度
+    $('#bb-set-amber-show-confidence').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.show_confidence = $(this).is(':checked');
+      saveSettingsDebounced();
+      if (typeof renderAmberFacts === 'function') renderAmberFacts();
+    });
+
+    // 显示引用次数
+    $('#bb-set-amber-show-refs').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.show_references = $(this).is(':checked');
+      saveSettingsDebounced();
+      if (typeof renderAmberFacts === 'function') renderAmberFacts();
+    });
+
+    // 冲突检测开关
+    $('#bb-set-amber-conflict').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.conflict_detection = $(this).is(':checked');
+      saveSettingsDebounced();});
+
+    // 冲突检测阈值
+    $('#bb-set-amber-threshold').on('input', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      const val = parseFloat($(this).val());
+      s().memory_amber.conflict_threshold = val;
+      $('#bb-set-amber-threshold-val').text(val.toFixed(2));
+      saveSettingsDebounced();
+    });
+
+    // 多角色支持
+    $('#bb-set-amber-multi-char').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.multi_character = $(this).is(':checked');
+      saveSettingsDebounced();
+    });
+
+    // 导出格式
+    $('#bb-set-amber-export-format').on('change', function () {
+      if (!s().memory_amber) s().memory_amber = {};
+      s().memory_amber.export_format = $(this).val();
+      saveSettingsDebounced();
+    });
+
+    console.log('[骨与血] 记忆琥珀设置绑定完成');
+  }
+
 }
 
 // ── 导出功能 ──
