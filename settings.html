@@ -1727,6 +1727,53 @@
   </div>
 </div>
 
+      <!-- ═══════════════════════════════════════════
+     ⭐ 编年史设置
+     ═══════════════════════════════════════════ -->
+<div class="bb-settings-section">
+  <h4class="bb-settings-title">⭐ 时间线编年史</h4>
+  
+  <div class="bb-settings-row">
+    <label class="bb-toggle-label">
+      <input type="checkbox" id="bb-set-chronicle-enabled" class="bb-toggle" checked>
+      <span>启用编年史</span>
+    </label>
+    <span class="bb-text-xs bb-text-muted">自动记录故事中的关键事件</span>
+  </div>
+  
+  <div class="bb-settings-row">
+    <label class="bb-toggle-label">
+      <input type="checkbox" id="bb-set-chronicle-auto" class="bb-toggle" checked>
+      <span>自动提取事件</span>
+    </label>
+    <span class="bb-text-xs bb-text-muted">每N条消息自动分析对话</span>
+  </div>
+  
+  <div class="bb-settings-row">
+    <label>提取间隔（消息数）</label>
+    <input type="number" id="bb-set-chronicle-interval" class="bb-input" min="5" max="100" step="5" value="20" style="width:80px;">
+  </div>
+  
+  <div class="bb-settings-row">
+    <label class="bb-toggle-label">
+      <input type="checkbox" id="bb-set-chronicle-auto-chapter" class="bb-toggle" checked>
+      <span>自动章节分组</span>
+    </label></div>
+  
+  <div class="bb-settings-row">
+    <label>每章事件数阈值</label>
+    <input type="number" id="bb-set-chronicle-chapter-threshold" class="bb-input" min="3" max="20" step="1" value="5" style="width:80px;">
+  </div>
+  
+  <div class="bb-settings-row">
+    <label>导出格式</label>
+    <select id="bb-set-chronicle-export-format" class="bb-input" style="width:150px;">
+      <option value="markdown">Markdown</option>
+      <option value="json">JSON</option>
+    </select>
+  </div>
+</div>
+
 
       <!-- ═══ 版本信息 ═══ -->
       <!--无悬浮球时的备用入口 -->
