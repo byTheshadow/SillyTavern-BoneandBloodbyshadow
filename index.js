@@ -3508,7 +3508,8 @@ async function callSubAPI(messages, maxTokens = 500, temperature = 0.85) {
       });
     }
     return content.trim();
-  } catch (err) {
+   } catch (err) {
+    bbLogError('API调用', `${err.message}`, `模型: ${model}, URL: ${url}`);
     toastr.error(`API 调用失败: ${err.message}`);
     return null;
   }
