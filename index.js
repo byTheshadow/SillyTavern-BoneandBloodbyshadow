@@ -328,7 +328,36 @@ const DEFAULT_SETTINGS = {
     rp_current_date: null,           // RP当前日期 { year, month, day }
     week_start: 0,                   // 周起始日（0=周日，1=周一）
   },
-
+   // 时间线编年史系统设置  ← 在这里添加
+  chronicle: {
+    enabled: true,
+    auto_extract: true,
+    extract_interval: 20,
+    auto_chapter: true,
+    chapter_threshold: 5,
+    show_importance: true,
+    default_importance: 3,
+    export_format: 'markdown',
+  },
+  
+  // 日历系统设置  ← 然后添加日历配置
+  calendar: {
+    enabled: true,
+    mode: 'real',
+    template_id: 'gregorian',
+    custom_templates: [],
+    default_view: 'month',
+    show_holidays: true,
+    show_solar_terms: true,
+    show_seasons: true,
+    show_aggregation: true,
+    holiday_auto_inject: true,
+    season_auto_inject: true,
+    custom_holidays: [],
+    time_anchor: null,
+    rp_current_date: null,
+    week_start: 0,
+  },
 };
 
 const PET_TYPES = [
