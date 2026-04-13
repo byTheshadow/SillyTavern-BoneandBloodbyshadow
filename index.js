@@ -1261,6 +1261,24 @@ function playNotificationSound(type = 'success') {
     // 静默失败 — 某些浏览器可能阻止自动播放
   }
 }
+// ── 辅助函数（修复缺失定义）──
+
+function getChatData() {
+  return pluginData;
+}
+
+function getCurrentCharacterName() {
+  const ctx = getContext();
+  return ctx.name2 || ctx.characterId || null;
+}
+
+function getRecentMessages(count = 20) {
+  return getRecentChat(count);
+}
+
+function getCurrentPromptPreset() {
+  return getActivePreset();
+}
 // ═══════════════ 区块 B 结束 ═══════════════
 
 
