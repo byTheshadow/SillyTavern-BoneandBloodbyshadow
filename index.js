@@ -5603,6 +5603,19 @@ jQuery(async () => {
     initMemoryAmber();
   }
 
+    // 时间线编年史系统
+  chronicle: {
+    enabled: true,
+    auto_extract: true,
+    extract_interval: 20,// 每N条消息触发提取
+    auto_chapter: true,           // 自动章节分组
+    chapter_threshold: 5,         // 每N个事件自动分章
+    show_importance: true,        // 显示重要度
+    default_importance: 3,        // 默认重要度
+    export_format: 'markdown',    // 'markdown' | 'json'
+  },
+
+
   // 16. 检查成就
   checkAchievements();
 
