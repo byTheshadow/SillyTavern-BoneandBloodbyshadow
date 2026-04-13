@@ -3938,6 +3938,8 @@ function bindMainPanelEvents(panel) {
     saveSettingsDebounced();
     updateAutoSummaryBar();
     toastr.info(s.auto_diary_enabled ? '✅ 自动记录已开启' : '⏸ 自动记录已暂停');
+     // 新增：记忆琥珀事件
+  bindAmberPanelEvents();
   });
 
 
