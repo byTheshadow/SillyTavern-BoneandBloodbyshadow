@@ -5017,129 +5017,6 @@ function bindSettingsPanelEvents() {
     input.click();
   });
 
-    // 📌 记忆琥珀设置绑定
-  // ═══════════════════════════════════════════
-  // 安全检查：如果settings.html中没有记忆琥珀的设置项，跳过
-  if ($('#bb-set-amber-enabled').length > 0) {
-    const ma = s().memory_amber || {};
-
-    // 加载当前值到UI
-    $('#bb-set-amber-enabled').prop('checked', ma.enabled !== false);
-    $('#bb-set-amber-auto-extract').prop('checked', ma.auto_extract !== false);
-    $('#bb-set-amber-interval').val(ma.extract_interval || 15);
-    $('#bb-set-amber-auto-confirm').prop('checked', !!ma.auto_confirm);
-    $('#bb-set-amber-max-facts').val(ma.max_facts_per_character || 100);
-    $('#bb-set-amber-priority').val(ma.priority_algorithm || 'weighted');
-    $('#bb-set-amber-show-confidence').prop('checked', ma.show_confidence !== false);
-    $('#bb-set-amber-show-refs').prop('checked', ma.show_references !== false);
-    $('#bb-set-amber-conflict').prop('checked', ma.conflict_detection !== false);
-    $('#bb-set-amber-threshold').val(ma.conflict_threshold || 0.7);
-    $('#bb-set-amber-threshold-val').text(ma.conflict_threshold || 0.7);
-    $('#bb-set-amber-multi-char').prop('checked', ma.multi_character !== false);
-    $('#bb-set-amber-export-format').val(ma.export_format || 'json');
-
-    // 监听变化 — 启用开关
-    $('#bb-set-amber-enabled').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.enabled = $(this).is(':checked');
-      saveSettingsDebounced();
-      toastr.info(s().memory_amber.enabled ? '记忆琥珀已启用' : '记忆琥珀已关闭');
-    });
-
-    // 自动提取开关
-    $('#bb-set-amber-auto-extract').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.auto_extract = $(this).is(':checked');
-      saveSettingsDebounced();
-      if ($(this).is(':checked') && typeof hookFactExtractionToMessageCounter === 'function') {
-        hookFactExtractionToMessageCounter();
-        toastr.info('自动提取已启用');
-      } else {
-        toastr.info('自动提取已关闭');
-      }
-    });
-
-    // 提取间隔
-    $('#bb-set-amber-interval').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.extract_interval = parseInt($(this).val()) || 15;
-      saveSettingsDebounced();
-    });
-
-    // 自动确认
-    $('#bb-set-amber-auto-confirm').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.auto_confirm = $(this).is(':checked');
-      saveSettingsDebounced();
-      if ($(this).is(':checked')) {
-        toastr.warning('⚠️ 自动确认已启用，事实将不经审核直接添加');
-      }
-    });
-
-    // 每角色最大事实数
-    $('#bb-set-amber-max-facts').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.max_facts_per_character = parseInt($(this).val()) || 100;
-      saveSettingsDebounced();
-    });
-
-    // 优先级算法
-    $('#bb-set-amber-priority').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.priority_algorithm = $(this).val();
-      saveSettingsDebounced();if (typeof renderAmberFacts === 'function') renderAmberFacts();
-    });
-
-    // 显示置信度
-    $('#bb-set-amber-show-confidence').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.show_confidence = $(this).is(':checked');
-      saveSettingsDebounced();
-      if (typeof renderAmberFacts === 'function') renderAmberFacts();
-    });
-
-    // 显示引用次数
-    $('#bb-set-amber-show-refs').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.show_references = $(this).is(':checked');
-      saveSettingsDebounced();
-      if (typeof renderAmberFacts === 'function') renderAmberFacts();
-    });
-
-    // 冲突检测开关
-    $('#bb-set-amber-conflict').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.conflict_detection = $(this).is(':checked');
-      saveSettingsDebounced();});
-
-    // 冲突检测阈值
-    $('#bb-set-amber-threshold').on('input', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      const val = parseFloat($(this).val());
-      s().memory_amber.conflict_threshold = val;
-      $('#bb-set-amber-threshold-val').text(val.toFixed(2));
-      saveSettingsDebounced();
-    });
-
-    // 多角色支持
-    $('#bb-set-amber-multi-char').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.multi_character = $(this).is(':checked');
-      saveSettingsDebounced();
-    });
-
-    // 导出格式
-    $('#bb-set-amber-export-format').on('change', function () {
-      if (!s().memory_amber) s().memory_amber = {};
-      s().memory_amber.export_format = $(this).val();
-      saveSettingsDebounced();
-    });
-
-    console.log('[骨与血] 记忆琥珀设置绑定完成');
-  }
-
-
-
   // 数据管理
   $('#bb-export-md').on('click', () => exportAsMarkdown());
   $('#bb-export-json').on('click', () => exportAsJSON());
@@ -5271,6 +5148,21 @@ function bindSettingsPanelEvents() {
 
     console.log('[骨与血] 记忆琥珀设置绑定完成');
   }
+    $(panel).off('click.bbsubtab').on('click.bbsubtab', '.bb-sub-tab-btn', function () {
+    const targetSubTab = $(this).data('subtab');
+    const $parent = $(this).closest('.bb-tab-pane');
+    
+    // 切换按钮高亮
+    $parent.find('.bb-sub-tab-btn').removeClass('bb-sub-tab-active');
+    $(this).addClass('bb-sub-tab-active');
+    
+    // 切换面板
+    $parent.find('.bb-sub-tab-pane').addClass('bb-hidden');
+    $parent.find(`#bb-subtab-${targetSubTab}`).removeClass('bb-hidden');
+  });
+
+  // 编年史事件绑定
+  bindChroniclePanelEvents();
 
 }
 
@@ -7184,6 +7076,904 @@ function initMemoryAmber() {
 // ═══════════════════════════════════════════
 // 【区块U 结束】
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// 【区块 P】时间线编年史系统 - Chronicle
+// ═══════════════════════════════════════════
+
+//────────────────────────────────────────────
+// P1. 数据管理
+// ────────────────────────────────────────────
+
+/**
+ * 获取编年史事件列表
+ */
+function getChronicleEvents() {
+  const chatData = getChatData();
+  if (!chatData.chronicle_events) chatData.chronicle_events = [];
+  return chatData.chronicle_events;
+}
+
+/**
+ * 获取编年史章节列表
+ */
+function getChronicleChapters() {
+  const chatData = getChatData();
+  if (!chatData.chronicle_chapters) chatData.chronicle_chapters = [];
+  return chatData.chronicle_chapters;
+}
+
+/**
+ * 保存编年史数据
+ */
+function saveChronicleData() {
+  saveChatData();
+  renderChronicleTimeline();
+  updateChronicleStats();
+}
+
+/**
+ * 添加编年史事件
+ */
+function addChronicleEvent(event) {
+  const events = getChronicleEvents();
+  event.id = event.id || generateId();
+  event.timestamp = event.timestamp || new Date().toISOString();
+  event.category = event.category || 'custom';
+  event.importance = event.importance || 3;
+  event.characters = event.characters || [];
+  event.location = event.location || '';
+  event.image = event.image || '';
+  event.source = event.source || 'manual';
+  event.chapter = event.chapter || '';
+  events.push(event);
+  
+  // 按时间排序
+  events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  // 自动分章
+  const s = extension_settings[EXTENSION_NAME];
+  if (s.chronicle.auto_chapter) {
+    autoAssignChapters();
+  }
+  
+  saveChronicleData();
+  
+  if (typeof bbNotify === 'function') {
+    bbNotify('chronicle', '新事件已记录', event.title);
+  }
+  if (typeof playNotificationSound === 'function') {
+    playNotificationSound('success');
+  }
+  
+  return event;
+}
+
+/**
+ * 更新编年史事件
+ */
+function updateChronicleEvent(eventId, updates) {
+  const events = getChronicleEvents();
+  const idx = events.findIndex(e => e.id === eventId);
+  if (idx === -1) return false;
+  
+  events[idx] = { ...events[idx], ...updates };
+  saveChronicleData();
+  return true;
+}
+
+/**
+ * 删除编年史事件
+ */
+function deleteChronicleEvent(eventId) {
+  const chatData = getChatData();
+  chatData.chronicle_events = (chatData.chronicle_events || []).filter(e => e.id !== eventId);
+  saveChronicleData();
+  toastr.success('事件已删除');
+}
+
+// ────────────────────────────────────────────
+// P2. 自动章节分组
+// ────────────────────────────────────────────
+
+/**
+ * 自动为事件分配章节
+ */
+function autoAssignChapters() {
+  const s = extension_settings[EXTENSION_NAME];
+  const events = getChronicleEvents();
+  const chapters = getChronicleChapters();
+  const threshold = s.chronicle.chapter_threshold || 5;
+  
+  if (events.length === 0) return;
+  
+  // 如果没有章节，创建第一个
+  if (chapters.length === 0) {
+    chapters.push({
+      id: generateId(),
+      name: '第一章：序幕',
+      startIndex: 0,
+      timestamp: events[0].timestamp,
+    });
+  }
+  
+  // 检查是否需要新章节
+  const lastChapter = chapters[chapters.length - 1];
+  const eventsInLastChapter = events.filter(e => e.chapter === lastChapter.id || !e.chapter).length;
+  
+  if (eventsInLastChapter >= threshold) {
+    const chapterNum = chapters.length + 1;
+    const newChapter = {
+      id: generateId(),
+      name: `第${chapterNum}章`,
+      startIndex: events.length -1,
+      timestamp: new Date().toISOString(),
+    };
+    chapters.push(newChapter);
+    
+    // 将未分配章节的事件分配到最新章节
+    events.forEach(e => {
+      if (!e.chapter) e.chapter = lastChapter.id;
+    });}
+  
+  // 确保所有事件都有章节
+  const currentChapterId = chapters[chapters.length - 1].id;
+  events.forEach(e => {
+    if (!e.chapter) e.chapter = currentChapterId;
+  });
+}
+
+/**
+ * 手动重命名章节
+ */
+function renameChapter(chapterId, newName) {
+  const chapters = getChronicleChapters();
+  const chapter = chapters.find(c => c.id === chapterId);
+  if (chapter) {
+    chapter.name = newName;
+    saveChronicleData();
+    toastr.success('章节已重命名');
+  }
+}
+
+// ────────────────────────────────────────────
+// P3. 自动提取引擎
+// ────────────────────────────────────────────
+
+/**
+ * 从对话中提取编年史事件
+ */
+async function extractChronicleFromChat() {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.chronicle.enabled || chronicleExtracting) return;
+  
+  const cn = getCurrentCharacterName();
+  if (!cn) {
+    toastr.warning('请先选择角色');
+    return;
+  }
+  
+  chronicleExtracting = true;
+  toastr.info('⭐ 正在从对话中提取关键事件...');
+  
+  try {
+    const recent = getRecentChat(30);
+    if (recent.length < 5) {
+      toastr.warning('对话内容太少');
+      chronicleExtracting = false;
+      return;
+    }
+    
+    const chatContext = recent.map(m => `${m.name}: ${m.mes}`).join('\n');
+    const preset = getActivePreset();
+    
+    const prompt = `你是一个故事编年史记录员。请从以下对话中提取重要的故事事件。
+
+## 事件分类
+${Object.entries(CHRONICLE_CATEGORIES).map(([k, v]) => `- ${k}: ${v.icon} ${v.name}`).join('\n')}
+
+## 重要度标准
+1=琐事（日常闲聊）
+2 = 普通（小互动）
+3 = 重要（推动剧情）
+4 = 关键（转折点）
+5 = 史诗（改变命运）
+
+## 对话内容
+${chatContext}
+
+## 输出要求
+提取2-5个最重要的事件，以JSON数组格式输出：
+[
+  {
+    "title": "事件标题（简短有力，10字以内）",
+    "content": "事件描述（30-80字，叙事风格）",
+    "category": "分类key",
+    "importance": 3,
+    "characters": ["涉及的角色名"],
+    "location": "发生地点（如果能推断）"
+  }
+]`;const result = await callSubAPI([
+      { role: 'system', content: prompt },
+      { role: 'user', content: '请提取事件。' }
+    ], 1200);
+    
+    if (!result) {
+      chronicleExtracting = false;
+      return;
+    }
+    
+    // 解析结果
+    const parsed = parseChronicleExtraction(result);
+    
+    if (parsed.length === 0) {
+      toastr.info('未发现重要事件');
+      chronicleExtracting = false;
+      return;
+    }
+    
+    // 直接添加（编年史不需要确认流程，因为事件更客观）
+    parsed.forEach(event => {
+      addChronicleEvent({
+        ...event,
+        source: 'auto_chat',
+      });
+    });
+    
+    toastr.success(`⭐ 提取到 ${parsed.length} 个事件`);
+    
+  } catch (err) {
+    console.error('[编年史] 提取失败:', err);
+    if (typeof bbLogError === 'function') {
+      bbLogError('编年史', '事件提取失败', err.message);
+    }
+    toastr.error('事件提取失败');
+  } finally {
+    chronicleExtracting = false;
+  }
+}
+
+/**
+ * 从日记/总结中批量提取事件
+ */
+async function extractChronicleFromDiary() {
+  const diaries = pluginData.diary_blood || [];
+  const summaries = pluginData.summaries || [];
+  
+  if (diaries.length === 0 && summaries.length === 0) {
+    toastr.warning('没有日记或总结可供提取');
+    return;
+  }
+  
+  chronicleExtracting = true;
+  toastr.info('📖 正在从日记和总结中提取事件...');
+  
+  try {
+    // 合并日记和总结内容
+    let sourceText = '';
+    
+    diaries.forEach(d => {
+      sourceText += `[日记 ${d.date}] ${d.content}\n\n`;
+    });
+    summaries.forEach(s => {
+      sourceText += `[总结 ${s.date}] ${s.content}\n\n`;
+    });
+    
+    // 截取最近的内容（避免超长）
+    if (sourceText.length > 3000) {
+      sourceText = sourceText.substring(sourceText.length - 3000);
+    }
+    
+    const prompt = `你是一个故事编年史记录员。请从以下日记和总结中提取重要的故事事件。
+
+## 事件分类
+${Object.entries(CHRONICLE_CATEGORIES).map(([k, v]) => `- ${k}: ${v.icon} ${v.name}`).join('\n')}
+
+## 源材料
+${sourceText}
+
+## 输出要求
+提取3-8个最重要的事件，按时间顺序排列，以JSON数组格式输出：
+[
+  {
+    "title": "事件标题（简短有力）",
+    "content": "事件描述（30-80字）",
+    "category": "分类key",
+    "importance": 3,
+    "characters": ["角色名"],
+    "location": "地点"
+  }
+]`;
+
+    const result = await callSubAPI([
+      { role: 'system', content: prompt },
+      { role: 'user', content: '请提取事件。' }
+    ], 1500);
+    
+    if (!result) {
+      chronicleExtracting = false;
+      return;
+    }
+    
+    const parsed = parseChronicleExtraction(result);
+    
+    if (parsed.length === 0) {
+      toastr.info('未发现重要事件');
+      chronicleExtracting = false;
+      return;
+    }
+    
+    parsed.forEach(event => {
+      addChronicleEvent({
+        ...event,
+        source: 'diary_summary',
+      });
+    });
+    
+    toastr.success(`📖 从日记/总结中提取到 ${parsed.length} 个事件`);
+    
+  } catch (err) {
+    console.error('[编年史] 日记提取失败:', err);
+    if (typeof bbLogError === 'function') {
+      bbLogError('编年史', '日记提取失败', err.message);
+    }
+    toastr.error('提取失败');
+  } finally {
+    chronicleExtracting = false;
+  }
+}
+
+/**
+ * 解析AI提取结果
+ */
+function parseChronicleExtraction(apiResponse) {
+  try {
+    let jsonStr = apiResponse.trim();
+    jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    
+    //尝试找到JSON数组
+    const startIdx = jsonStr.indexOf('[');
+    const endIdx = jsonStr.lastIndexOf(']');
+    if (startIdx !== -1 && endIdx !== -1) {
+      jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+    }
+    
+    const parsed = JSON.parse(jsonStr);
+    
+    if (!Array.isArray(parsed)) return [];
+    
+    return parsed.map(item => ({
+      title: item.title || '未命名事件',
+      content: item.content || '',
+      category: CHRONICLE_CATEGORIES[item.category] ? item.category : 'custom',
+      importance: Math.min(5, Math.max(1, parseInt(item.importance) || 3)),
+      characters: Array.isArray(item.characters) ? item.characters : [],
+      location: item.location || '',})).filter(e => e.title && e.content);
+    
+  } catch (err) {
+    console.error('[编年史] JSON解析失败:', err);
+    if (typeof bbLogError === 'function') {
+      bbLogError('编年史', 'JSON解析失败', apiResponse.substring(0, 200));
+    }
+    return [];
+  }
+}
+
+// ────────────────────────────────────────────
+// P4. 渲染 — 时间轴可视化
+// ────────────────────────────────────────────
+
+/**
+ * 渲染编年史时间轴
+ */
+function renderChronicleTimeline() {
+  const $timeline = $('#bb-chronicle-timeline');
+  if ($timeline.length === 0) return;
+  
+  // 获取筛选条件
+  const filterCat = $('#bb-chronicle-filter-category').val();
+  const filterImp = $('#bb-chronicle-filter-importance').val();
+  const searchText = ($('#bb-chronicle-search').val() || '').toLowerCase();
+  
+  let events = getChronicleEvents();
+  const chapters = getChronicleChapters();
+  
+  // 应用筛选
+  if (filterCat && filterCat !== 'all') {
+    events = events.filter(e => e.category === filterCat);
+  }
+  if (filterImp && filterImp !== 'all') {
+    events = events.filter(e => e.importance >= parseInt(filterImp));
+  }
+  if (searchText) {
+    events = events.filter(e =>
+      e.title.toLowerCase().includes(searchText) ||
+      e.content.toLowerCase().includes(searchText) ||
+      e.characters.some(c => c.toLowerCase().includes(searchText))
+    );
+  }
+  
+  $timeline.empty();
+  
+  if (events.length === 0) {
+    $timeline.html(`
+      <div class="bb-empty">
+        暂无编年史事件 ⭐<br/>
+        点击"从对话提取"开始记录你的故事
+      </div>
+    `);
+    return;
+  }
+  
+  // 中线
+  $timeline.append('<div class="bb-chronicle-line"></div>');
+  
+  // 按章节分组渲染
+  let currentChapterId = null;
+  
+  events.forEach((event, idx) => {
+    const cat = CHRONICLE_CATEGORIES[event.category] || CHRONICLE_CATEGORIES.custom;
+    const imp = CHRONICLE_IMPORTANCE[event.importance] || CHRONICLE_IMPORTANCE[3];
+    const side = idx % 2 === 0 ? 'left' : 'right';
+    
+    // 章节标题
+    if (event.chapter && event.chapter !== currentChapterId) {
+      currentChapterId = event.chapter;
+      const chapter = chapters.find(c => c.id === currentChapterId);
+      if (chapter) {
+        $timeline.append(`
+          <div class="bb-chronicle-chapter-header">
+            <span class="bb-chronicle-chapter-name" data-chapter-id="${chapter.id}">
+              📖 ${esc(chapter.name)}
+            </span>
+            <button class="bb-chronicle-chapter-rename bb-text-xs bb-clickable" data-chapter-id="${chapter.id}" title="重命名">✏️</button>
+          </div>
+        `);
+      }
+    }
+    
+    // 事件节点
+    const dateStr = new Date(event.timestamp).toLocaleString('zh-CN', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    
+    const charsHtml = event.characters.length > 0
+      ? `<div class="bb-chronicle-chars">${event.characters.map(c => `<span class="bb-chronicle-char-tag">${esc(c)}</span>`).join('')}</div>`
+      : '';
+    
+    const locationHtml = event.location
+      ? `<span class="bb-text-xs bb-text-dim">📍 ${esc(event.location)}</span>`
+      : '';
+    
+    const imageHtml = event.image
+      ? `<div class="bb-chronicle-image"><img src="${esc(event.image)}" alt="${esc(event.title)}" loading="lazy"></div>`
+      : '';
+    
+    const sourceIcon = event.source === 'auto_chat' ? '🤖' : event.source === 'diary_summary' ? '📖' : '✍️';
+    
+    $timeline.append(`
+      <div class="bb-chronicle-node bb-chronicle-${side}" data-event-id="${event.id}">
+        <div class="bb-chronicle-dot" style="background:${cat.color};"></div>
+        <div class="bb-chronicle-card" style="border-top:3px solid ${cat.color};">
+          <div class="bb-chronicle-card-header">
+            <span class="bb-chronicle-category" style="color:${cat.color};">
+              ${cat.icon} ${cat.name}
+            </span>
+            <div class="bb-chronicle-card-actions">
+              <span class="bb-text-xs bb-text-dim" title="来源">${sourceIcon}</span>
+              <span class="bb-text-xs bb-text-dim">${imp.label}</span>
+              <button class="bb-chronicle-btn" data-action="edit" title="编辑">✏️</button>
+              <button class="bb-chronicle-btn" data-action="delete" title="删除">🗑️</button>
+            </div>
+          </div>
+          
+          <h4 class="bb-chronicle-title">${esc(event.title)}</h4>
+          
+          ${imageHtml}
+          
+          <p class="bb-chronicle-content">${esc(event.content)}</p>
+          
+          <div class="bb-chronicle-meta">
+            <span class="bb-text-xs bb-text-dim">🕐 ${dateStr}</span>
+            ${locationHtml}
+          </div>
+          ${charsHtml}
+        </div>
+      </div>
+    `);
+  });
+  
+  // 绑定事件
+  bindChronicleCardEvents();
+}
+
+/**
+ * 更新统计信息
+ */
+function updateChronicleStats() {
+  const events = getChronicleEvents();
+  const chapters = getChronicleChapters();
+  
+  $('#bb-chronicle-stat-total').text(`共 ${events.length} 个事件`);
+  $('#bb-chronicle-stat-chapters').text(`${chapters.length} 个章节`);
+}
+
+/**
+ * 刷新分类筛选下拉框
+ */
+function refreshChronicleCategoryFilter() {
+  const $select = $('#bb-chronicle-filter-category');
+  if ($select.length === 0) return;
+  
+  $select.empty();
+  $select.append('<option value="all">全部分类</option>');
+  
+  Object.entries(CHRONICLE_CATEGORIES).forEach(([key, val]) => {
+    $select.append(`<option value="${key}">${val.icon} ${val.name}</option>`);
+  });
+}
+
+// ────────────────────────────────────────────
+// P5. 事件绑定
+// ────────────────────────────────────────────
+
+/**
+ * 绑定编年史主面板事件
+ */
+function bindChroniclePanelEvents() {
+  const panel = '#bb-main-panel';
+  
+  // 从对话提取
+  $(panel).off('click.chronextract').on('click.chronextract', '#bb-chronicle-extract', () => {
+    extractChronicleFromChat();
+  });
+  
+  // 手动添加
+  $(panel).off('click.chronadd').on('click.chronadd', '#bb-chronicle-add-manual', () => {
+    showChronicleEditModal();
+  });
+  
+  // 从日记提取
+  $(panel).off('click.chronfromdiary').on('click.chronfromdiary', '#bb-chronicle-from-diary', () => {
+    extractChronicleFromDiary();
+  });
+  
+  // 导出
+  $(panel).off('click.chronexport').on('click.chronexport', '#bb-chronicle-export', () => {
+    exportChronicle();
+  });
+  
+  // 筛选变化
+  $(panel).off('change.chronfilter').on('change.chronfilter', '#bb-chronicle-filter-category, #bb-chronicle-filter-importance', () => {
+    renderChronicleTimeline();
+  });
+  
+  // 搜索
+  $(panel).off('input.chronsearch').on('input.chronsearch', '#bb-chronicle-search', debounce(() => {
+    renderChronicleTimeline();
+  }, 300));
+  
+  // 章节重命名
+  $(panel).off('click.chronrename').on('click.chronrename', '.bb-chronicle-chapter-rename', function () {
+    const chapterId = $(this).data('chapter-id');
+    const chapters = getChronicleChapters();
+    const chapter = chapters.find(c => c.id === chapterId);
+    if (!chapter) return;
+    
+    const newName = prompt('输入新章节名称:', chapter.name);
+    if (newName && newName.trim()) {
+      renameChapter(chapterId, newName.trim());
+    }
+  });
+}
+
+/**
+ * 绑定事件卡片操作
+ */
+function bindChronicleCardEvents() {
+  $('.bb-chronicle-node').off('click.chronaction').on('click.chronaction', '.bb-chronicle-btn', function () {
+    const action = $(this).data('action');
+    const eventId = $(this).closest('.bb-chronicle-node').data('event-id');
+    
+    switch (action) {
+      case 'edit':
+        showChronicleEditModal(eventId);
+        break;
+      case 'delete':
+        if (confirm('确认删除此事件？')) {
+          deleteChronicleEvent(eventId);
+        }
+        break;}
+  });
+}
+
+// ────────────────────────────────────────────
+// P6. 模态框
+// ────────────────────────────────────────────
+
+/**
+ * 显示编年史事件编辑模态框
+ */
+function showChronicleEditModal(eventId = null) {
+  const isEdit = !!eventId;
+  let event = null;
+  
+  if (isEdit) {
+    const events = getChronicleEvents();
+    event = events.find(e => e.id === eventId);
+    if (!event) {
+      toastr.error('事件不存在');
+      return;
+    }
+  }
+  
+  // 分类选项
+  const categoryOptions = Object.entries(CHRONICLE_CATEGORIES)
+    .map(([key, val]) => `<option value="${key}" ${event && event.category === key ? 'selected' : ''}>${val.icon} ${val.name}</option>`)
+    .join('');
+  
+  // 重要度选项
+  const importanceOptions = Object.entries(CHRONICLE_IMPORTANCE)
+    .map(([key, val]) => `<option value="${key}" ${event && event.importance == key ? 'selected' : ''}>${val.label} ${val.name}</option>`)
+    .join('');
+  
+  const modalHtml = `
+    <div class="bb-modal-overlay" id="bb-chronicle-edit-modal">
+      <div class="bb-modal-content" style="max-width:650px;">
+        <div class="bb-modal-header">
+          <h3>${isEdit ? '✏️ 编辑事件' : '➕ 添加事件'}</h3>
+          <button class="bb-modal-close">✖</button>
+        </div><div class="bb-modal-body">
+          <div class="bb-form-group">
+            <label>事件标题 *</label>
+            <input type="text" id="bb-chron-edit-title" class="bb-input" placeholder="简短有力的标题" value="${event ?esc(event.title) : ''}">
+          </div>
+          
+          <div class="bb-form-group">
+            <label>事件描述 *</label>
+            <textarea id="bb-chron-edit-content" class="bb-input" rows="4" placeholder="描述发生了什么...">${event ? esc(event.content) : ''}</textarea>
+          </div>
+          
+          <div style="display:flex;gap:10px;">
+            <div class="bb-form-group" style="flex:1;">
+              <label>分类</label>
+              <select id="bb-chron-edit-category" class="bb-input">
+                ${categoryOptions}
+              </select>
+            </div>
+            <div class="bb-form-group" style="flex:1;">
+              <label>重要度</label>
+              <select id="bb-chron-edit-importance" class="bb-input">
+                ${importanceOptions}
+              </select>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:10px;">
+            <div class="bb-form-group" style="flex:1;">
+              <label>涉及角色（逗号分隔）</label>
+              <input type="text" id="bb-chron-edit-characters" class="bb-input" placeholder="角色A, 角色B" value="${event ? event.characters.join(', ') : ''}">
+            </div>
+            <div class="bb-form-group" style="flex:1;">
+              <label>地点</label>
+              <input type="text" id="bb-chron-edit-location" class="bb-input" placeholder="发生地点" value="${event ? esc(event.location) : ''}">
+            </div>
+          </div>
+          
+          <div class="bb-form-group">
+            <label>配图URL（可选）</label>
+            <input type="text" id="bb-chron-edit-image" class="bb-input" placeholder="https://..." value="${event ? esc(event.image) : ''}">
+          </div>
+        </div>
+        <div class="bb-modal-footer">
+          <button class="bb-btn bb-btn-secondary" id="bb-chron-edit-cancel">取消</button>
+          <button class="bb-btn bb-btn-primary" id="bb-chron-edit-save">${isEdit ? '保存' : '添加'}</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  $('body').append(modalHtml);
+  
+  // 绑定事件
+  $('#bb-chronicle-edit-modal .bb-modal-close, #bb-chron-edit-cancel').on('click', () => {
+    $('#bb-chronicle-edit-modal').remove();
+  });
+  
+  $('#bb-chron-edit-save').on('click', () => {
+    const title = $('#bb-chron-edit-title').val().trim();
+    const content = $('#bb-chron-edit-content').val().trim();
+    
+    if (!title || !content) {
+      toastr.warning('请填写标题和描述');
+      return;
+    }
+    
+    const eventData = {
+      title: title,
+      content: content,
+      category: $('#bb-chron-edit-category').val(),
+      importance: parseInt($('#bb-chron-edit-importance').val()) || 3,
+      characters: $('#bb-chron-edit-characters').val().split(',').map(c => c.trim()).filter(Boolean),
+      location: $('#bb-chron-edit-location').val().trim(),
+      image: $('#bb-chron-edit-image').val().trim(),};
+    
+    if (isEdit) {
+      updateChronicleEvent(eventId, eventData);
+      toastr.success('事件已更新');
+    } else {
+      addChronicleEvent({ ...eventData, source: 'manual' });
+      toastr.success('事件已添加');
+    }
+    
+    $('#bb-chronicle-edit-modal').remove();
+  });
+}
+
+// ────────────────────────────────────────────
+// P7. 导出
+// ────────────────────────────────────────────
+
+/**
+ * 导出编年史
+ */
+function exportChronicle() {
+  const events = getChronicleEvents();
+  const chapters = getChronicleChapters();
+  
+  if (events.length === 0) {
+    toastr.warning('暂无事件可导出');
+    return;
+  }
+  
+  const s = extension_settings[EXTENSION_NAME];
+  const cn = getCurrentCharacterName() || '角色';
+  
+  if (s.chronicle.export_format === 'json') {
+    const data = { character: cn, exportTime: new Date().toISOString(), chapters, events };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chronicle_${cn}_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);toastr.success('编年史JSON已导出');
+  } else {
+    // Markdown格式
+    let md = `# ⭐ 编年史 — ${cn}\n\n`;
+    md += `> 导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
+    md += `---\n\n`;
+    
+    let currentChapterId = null;
+    
+    events.forEach(event => {
+      // 章节标题
+      if (event.chapter && event.chapter !== currentChapterId) {
+        currentChapterId = event.chapter;
+        const chapter = chapters.find(c => c.id === currentChapterId);
+        if (chapter) {
+          md += `\n## 📖 ${chapter.name}\n\n`;
+        }
+      }
+      
+      const cat = CHRONICLE_CATEGORIES[event.category] || CHRONICLE_CATEGORIES.custom;
+      const imp = CHRONICLE_IMPORTANCE[event.importance] || CHRONICLE_IMPORTANCE[3];
+      const date = new Date(event.timestamp).toLocaleString('zh-CN');
+      
+      md += `### ${cat.icon} ${event.title}\n\n`;
+      md += `- **分类:** ${cat.name} | **重要度:** ${imp.label}\n`;
+      md += `- **时间:** ${date}\n`;
+      if (event.characters.length > 0) md += `- **角色:** ${event.characters.join(', ')}\n`;
+      if (event.location) md += `- **地点:** ${event.location}\n`;
+      md += `\n${event.content}\n\n`;md += `---\n\n`;
+    });
+    
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chronicle_${cn}_${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toastr.success('编年史Markdown已导出');
+  }
+}
+
+// ────────────────────────────────────────────
+// P8. 宏注入
+// ────────────────────────────────────────────
+
+/**
+ * 生成 {{bb_chronicle}} 宏内容
+ */
+function generateChronicleMacro() {
+  const events = getChronicleEvents();
+  if (events.length === 0) return '';
+  
+  // 取最近10个事件
+  const recent = events.slice(-10);
+  
+  let output = '[最近的故事事件]\n';
+  recent.forEach(e => {
+    const cat = CHRONICLE_CATEGORIES[e.category] || CHRONICLE_CATEGORIES.custom;
+    output += `${cat.icon} ${e.title}: ${e.content}\n`;
+  });
+  
+  return output.trim();
+}
+
+// ────────────────────────────────────────────
+// P9. 自动提取钩子
+// ────────────────────────────────────────────
+
+let chronicleMessageCounter = 0;
+
+/**
+ * 将编年史提取挂钩到消息计数器
+ */
+function hookChronicleToMessageCounter() {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.chronicle.enabled || !s.chronicle.auto_extract) return;
+  
+  if (eventSource) {
+    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, () => {
+      chronicleMessageCounter++;
+      
+      if (chronicleMessageCounter >= s.chronicle.extract_interval) {
+        chronicleMessageCounter = 0;
+        setTimeout(() => {
+          extractChronicleFromChat();
+        },3000); // 延迟3秒，避免与记忆琥珀冲突
+      }
+    });console.log(`[编年史] 自动提取已启用，每${s.chronicle.extract_interval} 条消息触发`);
+  }
+}
+
+// ────────────────────────────────────────────
+// P10. 初始化
+// ────────────────────────────────────────────
+
+/**
+ * 初始化编年史系统
+ */
+function initChronicle() {
+  const s = extension_settings[EXTENSION_NAME];
+  
+  // 确保配置存在
+  if (!s.chronicle) {
+    s.chronicle = {
+      enabled: true,
+      auto_extract: true,
+      extract_interval: 20,
+      auto_chapter: true,
+      chapter_threshold: 5,
+      show_importance: true,
+      default_importance: 3,
+      export_format: 'markdown',
+    };
+    saveSettingsDebounced();
+  }
+  
+  // 刷新筛选器
+  refreshChronicleCategoryFilter();
+  
+  //渲染
+  renderChronicleTimeline();
+  updateChronicleStats();
+  
+  // 绑定事件
+  bindChroniclePanelEvents();
+  
+  // 挂钩自动提取
+  if (s.chronicle.enabled && s.chronicle.auto_extract) {
+    hookChronicleToMessageCounter();
+  }
+  console.log('[骨与血] 编年史系统初始化完成');
+}
+
+// ═══════════════════════════════════════════
+// 【区块P结束】
+// ═══════════════════════════════════════════
+
 
 
 
