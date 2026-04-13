@@ -52,6 +52,7 @@ monochrome: {
     errorlog: '⚠️ 错误日志', notifications: '🔔 通知栏',
     amber: '📌 记忆琥珀',
 },
+  }; 
 
 const TAB_KEYS = ['home','scrapbook','diary','npc','weather','vibe','parallel','fate','ooc','world','achievements','gallery','couple','errorlog','notifications','amber'];
 
