@@ -1592,6 +1592,72 @@ function buildMainPanelHTML() {
           <div class="bb-empty">暂无通知 🔔<br/>新内容生成时会在这里提醒你</div>
         </div>
       </div>
+            <!-- 📌 记忆琥珀 -->
+      <div id="bb-pane-amber" class="bb-tab-pane bb-hidden">
+        <!-- 顶部操作栏 -->
+        <div class="bb-action-bar bb-action-wrap">
+          <button class="bb-sm-btn bb-btn-primary" id="bb-amber-extract-now">
+            🔍 立即提取事实
+          </button>
+          <button class="bb-sm-btn" id="bb-amber-add-manual">
+            ➕ 手动添加
+          </button>
+          <button class="bb-sm-btn" id="bb-amber-export">
+            💾 导出
+          </button>
+          <button class="bb-sm-btn" id="bb-amber-import">
+            📂 导入
+          </button>
+          <button class="bb-sm-btn" id="bb-amber-settings">
+            ⚙️ 设置
+          </button>
+        </div>
+
+        <!-- 筛选与搜索栏 -->
+        <div class="bb-amber-filter-bar">
+          <select id="bb-amber-filter-character" class="bb-input" style="flex:1;">
+            <option value="all">全部角色</option>
+          </select>
+          <select id="bb-amber-filter-category" class="bb-input" style="flex:1;">
+            <option value="all">全部分类</option>
+          </select>
+          <select id="bb-amber-filter-status" class="bb-input" style="flex:1;">
+            <option value="all">全部状态</option>
+            <option value="active">活跃</option>
+            <option value="outdated">过时</option>
+            <option value="conflicted">冲突</option>
+          </select>
+          <input type="text" id="bb-amber-search" class="bb-input" placeholder="🔍 搜索事实..." style="flex:2;">
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="bb-amber-stats">
+          <span id="bb-amber-stat-total">总计: 0</span>
+          <span id="bb-amber-stat-active">活跃: 0</span>
+          <span id="bb-amber-stat-conflicted">冲突: 0</span>
+          <span id="bb-amber-stat-outdated">过时: 0</span>
+        </div>
+
+        <!-- 待确认面板（折叠） -->
+        <div id="bb-amber-pending-panel" class="bb-amber-pending bb-hidden">
+          <div class="bb-amber-pending-header">
+            <span>📋 待确认事实 (<span id="bb-amber-pending-count">0</span>)</span>
+            <div>
+              <button class="bb-sm-btn bb-btn-xs" id="bb-amber-confirm-all">✅ 全部确认</button>
+              <button class="bb-sm-btn bb-btn-xs" id="bb-amber-reject-all">❌ 全部拒绝</button>
+            </div>
+          </div>
+          <div id="bb-amber-pending-list" class="bb-amber-pending-list"></div>
+        </div>
+
+        <!-- 事实列表 -->
+        <div id="bb-amber-fact-list" class="bb-scroll-list">
+          <div class="bb-empty">
+            暂无事实记录 📌<br/>
+            点击"立即提取事实"开始分析对话
+          </div>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -5213,7 +5279,1501 @@ jQuery(async () => {
 });
 
 // ═══════════════ 区块 O结束 ═══════════════
+// ═══════════════════════════════════════════
+// 【区块 U】记忆琥珀系统 - Memory Amber
+// ═══════════════════════════════════════════
 
+// ────────────────────────────────────────────
+// U1. 数据管理
+// ────────────────────────────────────────────
+
+/**
+ * 获取当前角色的所有事实
+ */
+function getAmberFacts(characterName = null) {
+  const cn = characterName || getCurrentCharacterName();
+  if (!cn) return [];
+  
+  const chatData = getChatData();
+  if (!chatData.amber_facts) chatData.amber_facts = {};
+  if (!chatData.amber_facts[cn]) chatData.amber_facts[cn] = [];
+  
+  return chatData.amber_facts[cn];
+}
+
+/**
+ * 保存事实到当前角色
+ */
+function saveAmberFacts(facts, characterName = null) {
+  const cn = characterName || getCurrentCharacterName();
+  if (!cn) return;
+  
+  const chatData = getChatData();
+  if (!chatData.amber_facts) chatData.amber_facts = {};
+  chatData.amber_facts[cn] = facts;
+  
+  saveChatData();
+  renderAmberFacts();
+  updateAmberStats();
+}
+
+/**
+ * 添加单个事实
+ */
+function addAmberFact(fact, characterName = null) {
+  const facts = getAmberFacts(characterName);
+  
+  // 生成ID
+  fact.id = fact.id || generateId();
+  fact.timestamp = fact.timestamp || new Date().toISOString();
+  fact.lastUpdated = fact.lastUpdated || fact.timestamp;
+  fact.status = fact.status || 'active';
+  fact.references = fact.references || 0;
+  fact.confidence = fact.confidence || 0.8;
+  fact.conflictWith = fact.conflictWith || [];
+  fact.tags = fact.tags || [];
+  
+  facts.push(fact);
+  saveAmberFacts(facts, characterName);
+  
+  bbNotify('amber', '新事实已添加', fact.content.substring(0, 50));
+  playNotificationSound('success');
+}
+
+/**
+ * 更新事实
+ */
+function updateAmberFact(factId, updates, characterName = null) {
+  const facts = getAmberFacts(characterName);
+  const idx = facts.findIndex(f => f.id === factId);
+  
+  if (idx === -1) return false;
+  
+  facts[idx] = { ...facts[idx], ...updates, lastUpdated: new Date().toISOString() };
+  saveAmberFacts(facts, characterName);
+  
+  return true;
+}
+
+/**
+ * 删除事实
+ */
+function deleteAmberFact(factId, characterName = null) {
+  const facts = getAmberFacts(characterName);
+  const filtered = facts.filter(f => f.id !== factId);
+  
+  saveAmberFacts(filtered, characterName);
+  toastr.success('事实已删除');
+}
+
+/**
+ * 标记事实为过时
+ */
+function markAmberFactOutdated(factId, characterName = null) {
+  updateAmberFact(factId, { status: 'outdated' }, characterName);
+  toastr.info('事实已标记为过时');
+}
+
+/**
+ * 增加事实引用次数
+ */
+function incrementAmberFactReference(factId, characterName = null) {
+  const facts = getAmberFacts(characterName);
+  const fact = facts.find(f => f.id === factId);
+  
+  if (fact) {
+    fact.references = (fact.references || 0) + 1;
+    fact.lastUpdated = new Date().toISOString();
+    saveAmberFacts(facts, characterName);
+  }
+}
+
+// ────────────────────────────────────────────
+// U2. 优先级计算
+// ────────────────────────────────────────────
+
+/**
+ * 计算事实优先级
+ * 综合考虑：分类权重 + 置信度 + 引用次数 + 新鲜度
+ */
+function calculateFactPriority(fact) {
+  const s = extension_settings[EXTENSION_NAME];
+  
+  // 分类权重
+  const categoryWeight = FACT_CATEGORIES[fact.category]?.weight || 1.0;
+  
+  // 置信度 (0-1)
+  const confidence = fact.confidence || 0.5;
+  
+  // 引用次数（归一化到0-1）
+  const references = fact.references || 0;
+  const refScore = Math.min(references / 10, 1.0);
+  
+  // 新鲜度（最近30天内的事实得分更高）
+  const daysSinceUpdate = (Date.now() - new Date(fact.lastUpdated).getTime()) / (1000 * 60 * 60 * 24);
+  const freshnessScore = Math.max(0, 1 - daysSinceUpdate / 30);
+  
+  // 状态惩罚
+  let statusPenalty = 1.0;
+  if (fact.status === 'outdated') statusPenalty = 0.3;
+  if (fact.status === 'conflicted') statusPenalty = 0.5;
+  
+  // 加权计算
+  if (s.memory_amber.priority_algorithm === 'weighted') {
+    return (
+      categoryWeight * 0.3 +
+      confidence * 0.25 +
+      refScore * 0.25 +
+      freshnessScore * 0.2
+    ) * statusPenalty;
+  } else {
+    // 简单算法
+    return (confidence + refScore + freshnessScore) / 3 * statusPenalty;
+  }
+}
+
+/**
+ * 获取排序后的事实（按优先级）
+ */
+function getSortedAmberFacts(characterName = null, limit = null) {
+  const facts = getAmberFacts(characterName);
+  
+  // 计算优先级
+  const factsWithPriority = facts.map(f => ({
+    ...f,
+    priority: calculateFactPriority(f),
+  }));
+  
+  // 排序
+  factsWithPriority.sort((a, b) => b.priority - a.priority);
+  
+  // 限制数量
+  if (limit) return factsWithPriority.slice(0, limit);
+  
+  return factsWithPriority;
+}
+
+// ────────────────────────────────────────────
+// U3. 自动提取引擎
+// ────────────────────────────────────────────
+
+/**
+ * 从最近对话中提取事实
+ */
+async function extractFactsFromChat() {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.memory_amber.enabled || amberExtracting) return;
+  
+  const cn = getCurrentCharacterName();
+  if (!cn) {
+    toastr.warning('请先选择角色');
+    return;
+  }
+  
+  amberExtracting = true;
+  toastr.info('🔍 正在分析对话，提取关键事实...');
+  
+  try {
+    // 获取最近30条消息
+    const messages = getRecentMessages(30);
+    if (messages.length < 5) {
+      toastr.warning('对话内容太少，无法提取事实');
+      amberExtracting = false;
+      return;
+    }
+    
+    // 构建提示词
+    const prompt = buildFactExtractionPrompt(messages, cn);
+    
+    // 调用副API
+    const result = await callSubAPI(prompt, 'fact_extraction', 1500);
+    
+    if (!result) {
+      amberExtracting = false;
+      return;
+    }
+    
+    // 解析结果
+    const extractedFacts = parseExtractedFacts(result, cn);
+    
+    if (extractedFacts.length === 0) {
+      toastr.info('未发现新的关键事实');
+      amberExtracting = false;
+      return;
+    }
+    
+    // 添加到待确认列表
+    amberPendingFacts = extractedFacts;
+    renderAmberPendingFacts();
+    
+    toastr.success(`✅ 提取到 ${extractedFacts.length} 条事实，请确认`);
+    bbNotify('amber', `提取到 ${extractedFacts.length} 条新事实`, '请在记忆琥珀中确认');
+    playNotificationSound('success');
+    
+  } catch (err) {
+    console.error('[记忆琥珀] 提取失败:', err);
+    bbLogError('记忆琥珀', '事实提取失败', err.message);
+    toastr.error('事实提取失败');
+  } finally {
+    amberExtracting = false;
+  }
+}
+
+/**
+ * 构建事实提取提示词
+ */
+function buildFactExtractionPrompt(messages, characterName) {
+  const s = extension_settings[EXTENSION_NAME];
+  const preset = getCurrentPromptPreset();
+  
+  // 对话内容
+  const chatContext = messages.map(m => `${m.name}: ${m.mes}`).join('\n');
+  
+  // 分类说明
+  const categoryDesc = Object.entries(FACT_CATEGORIES)
+    .map(([key, val]) => `- ${key}: ${val.name}`)
+    .join('\n');
+  
+  const systemPrompt = `你是一个专业的记忆分析助手，负责从对话中提取关于角色"${characterName}"的关键事实。
+
+## 任务要求
+1. 仔细阅读对话内容
+2. 提取关于"${characterName}"的重要事实信息
+3. 每条事实必须：
+   - 明确、具体、可验证
+   - 包含足够的上下文
+   - 避免主观臆测
+   - 不要重复已知信息
+
+## 事实分类
+${categoryDesc}
+
+## 输出格式（JSON数组）
+[
+  {
+    "category": "分类key",
+    "content": "事实内容（一句话，清晰明确）",
+    "confidence": 0.9,
+    "source": "来源消息摘要",
+    "tags": ["标签1", "标签2"]
+  }
+]
+
+## 对话内容
+${chatContext}
+
+请提取3-8条最重要的事实，以JSON数组格式输出。`;
+
+  return systemPrompt;
+}
+
+/**
+ * 解析提取的事实
+ */
+function parseExtractedFacts(apiResponse, characterName) {
+  try {
+    // 尝试提取JSON
+    let jsonStr = apiResponse.trim();
+    
+    // 移除markdown代码块标记
+    jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    
+    // 尝试解析
+    const parsed = JSON.parse(jsonStr);
+    
+    if (!Array.isArray(parsed)) {
+      console.warn('[记忆琥珀] API返回的不是数组');
+      return [];
+    }
+    
+    // 转换为标准格式
+    return parsed.map(item => ({
+      id: generateId(),
+      character: characterName,
+      category: item.category || 'custom',
+      content: item.content || '',
+      confidence: parseFloat(item.confidence) || 0.7,
+      source: item.source || '自动提取',
+      tags: Array.isArray(item.tags) ? item.tags : [],
+      timestamp: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      status: 'active',
+      references: 0,
+      conflictWith: [],
+    })).filter(f => f.content.trim().length > 0);
+    
+  } catch (err) {
+    console.error('[记忆琥珀] 解析失败:', err);
+    bbLogError('记忆琥珀', 'JSON解析失败', apiResponse);
+    return [];
+  }
+}
+
+// ────────────────────────────────────────────
+// U4. 冲突检测
+// ────────────────────────────────────────────
+
+/**
+ * 检测事实冲突
+ */
+function detectFactConflicts(characterName = null) {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.memory_amber.conflict_detection) return;
+  
+  const facts = getAmberFacts(characterName);
+  const threshold = s.memory_amber.conflict_threshold;
+  
+  // 清除旧的冲突标记
+  facts.forEach(f => f.conflictWith = []);
+  
+  // 两两比较（仅比较同分类）
+  for (let i = 0; i < facts.length; i++) {
+    for (let j = i + 1; j < facts.length; j++) {
+      const f1 = facts[i];
+      const f2 = facts[j];
+      
+      // 仅比较同分类
+      if (f1.category !== f2.category) continue;
+      
+      // 计算相似度
+      const similarity = calculateTextSimilarity(f1.content, f2.content);
+      
+      // 如果相似度高但内容不完全一致，可能是冲突
+      if (similarity > threshold && f1.content !== f2.content) {
+        // 检查是否语义矛盾
+        if (isSemanticConflict(f1.content, f2.content)) {
+          f1.conflictWith.push(f2.id);
+          f2.conflictWith.push(f1.id);
+          f1.status = 'conflicted';
+          f2.status = 'conflicted';
+        }
+      }
+    }
+  }
+  
+  saveAmberFacts(facts, characterName);
+}
+
+/**
+ * 计算文本相似度（简单版：Jaccard相似度）
+ */
+function calculateTextSimilarity(text1, text2) {
+  const words1 = new Set(text1.toLowerCase().split(/\s+/));
+  const words2 = new Set(text2.toLowerCase().split(/\s+/));
+  
+  const intersection = new Set([...words1].filter(w => words2.has(w)));
+  const union = new Set([...words1, ...words2]);
+  
+  return intersection.size / union.size;
+}
+
+/**
+ * 判断是否语义冲突（简单版：关键词否定检测）
+ */
+function isSemanticConflict(text1, text2) {
+  const negations = ['不', '没', '非', '无', '否', '未', '别', 'not', 'no', 'never', 'neither'];
+  
+  // 检查是否一个包含否定词而另一个不包含
+  const hasNeg1 = negations.some(neg => text1.includes(neg));
+  const hasNeg2 = negations.some(neg => text2.includes(neg));
+  
+  return hasNeg1 !== hasNeg2;
+}
+
+/**
+ * AI辅助解决冲突（手动触发）
+ */
+async function resolveFactConflictWithAI(factId1, factId2, characterName = null) {
+  const facts = getAmberFacts(characterName);
+  const f1 = facts.find(f => f.id === factId1);
+  const f2 = facts.find(f => f.id === factId2);
+  
+  if (!f1 || !f2) {
+    toastr.error('事实不存在');
+    return;
+  }
+  
+  toastr.info('🤖 AI正在分析冲突...');
+  
+  try {
+    const prompt = `你是一个逻辑分析助手。以下两条关于"${characterName}"的事实存在冲突，请分析并给出建议。
+
+事实1: ${f1.content}
+来源: ${f1.source}
+时间: ${new Date(f1.timestamp).toLocaleString()}
+
+事实2: ${f2.content}
+来源: ${f2.source}
+时间: ${new Date(f2.timestamp).toLocaleString()}
+
+请分析：
+1. 这两条事实是否真的冲突？
+2. 如果冲突，哪一条更可信？为什么？
+3. 是否可以合并或修正？
+
+以JSON格式输出：
+{
+  "is_conflict": true/false,
+  "recommended_action": "keep_fact1" | "keep_fact2" | "merge" | "keep_both",
+  "reason": "原因说明",
+  "merged_content": "如果选择merge，这里是合并后的内容"
+}`;
+
+    const result = await callSubAPI(prompt, 'conflict_resolution', 800);
+    
+    if (!result) return;
+    
+    // 解析结果
+    let jsonStr = result.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    const analysis = JSON.parse(jsonStr);
+    
+    // 显示结果给用户
+    showConflictResolutionModal(f1, f2, analysis);
+    
+  } catch (err) {
+    console.error('[记忆琥珀] AI冲突解决失败:', err);
+    bbLogError('记忆琥珀', 'AI冲突解决失败', err.message);
+    toastr.error('AI分析失败');
+  }
+}
+
+// ────────────────────────────────────────────
+// U5. 渲染函数
+// ────────────────────────────────────────────
+
+/**
+ * 渲染事实列表
+ */
+function renderAmberFacts() {
+  const $list = $('#bb-amber-fact-list');
+  if ($list.length === 0) return;
+  
+  const cn = getCurrentCharacterName();
+  if (!cn) {
+    $list.html('<div class="bb-empty">请先选择角色</div>');
+    return;
+  }
+  
+  // 获取筛选条件
+  const filterChar = $('#bb-amber-filter-character').val();
+  const filterCat = $('#bb-amber-filter-category').val();
+  const filterStatus = $('#bb-amber-filter-status').val();
+  const searchText = $('#bb-amber-search').val().toLowerCase();
+  
+    // 获取事实
+  let facts = getSortedAmberFacts(filterChar === 'all' ? cn : filterChar);
+  
+  // 应用筛选
+  if (filterCat !== 'all') {
+    facts = facts.filter(f => f.category === filterCat);
+  }
+  if (filterStatus !== 'all') {
+    facts = facts.filter(f => f.status === filterStatus);
+  }
+  if (searchText) {
+    facts = facts.filter(f => 
+      f.content.toLowerCase().includes(searchText) ||
+      f.tags.some(t => t.toLowerCase().includes(searchText))
+    );
+  }
+  
+  $list.empty();
+  
+  if (facts.length === 0) {
+    $list.html('<div class="bb-empty">暂无符合条件的事实</div>');
+    return;
+  }
+  
+  // 渲染每条事实
+  facts.forEach(fact => {
+    const cat = FACT_CATEGORIES[fact.category] || FACT_CATEGORIES.custom;
+    const status = FACT_STATUS[fact.status] || FACT_STATUS.active;
+    const s = extension_settings[EXTENSION_NAME];
+    
+    // 冲突标记
+    const conflictBadge = fact.conflictWith.length > 0 
+      ? `<span class="bb-badge bb-badge-error" title="与${fact.conflictWith.length}条事实冲突">⚠️ 冲突</span>` 
+      : '';
+    
+    // 置信度显示
+    const confidenceBar = s.memory_amber.show_confidence 
+      ? `<div class="bb-amber-confidence-bar">
+           <div class="bb-amber-confidence-fill" style="width:${fact.confidence * 100}%"></div>
+         </div>
+         <span class="bb-text-xs bb-text-muted">置信度: ${(fact.confidence * 100).toFixed(0)}%</span>`
+      : '';
+    
+    // 引用次数
+    const refCount = s.memory_amber.show_references && fact.references > 0
+      ? `<span class="bb-text-xs bb-text-muted">📌 引用 ${fact.references} 次</span>`
+      : '';
+    
+    // 标签
+    const tagsHtml = fact.tags.length > 0
+      ? fact.tags.map(tag => `<span class="bb-amber-tag">${esc(tag)}</span>`).join('')
+      : '';
+    
+    $list.append(`
+      <div class="bb-amber-fact-card" data-fact-id="${fact.id}" style="border-left: 3px solid ${cat.color};">
+        <div class="bb-amber-fact-header">
+          <span class="bb-amber-category" style="color:${cat.color};">
+            ${cat.icon} ${cat.name}
+          </span>
+          <div class="bb-amber-fact-actions">
+            ${conflictBadge}
+            <span class="bb-amber-status" style="color:${status.color};">${status.name}</span>
+            <button class="bb-amber-fact-btn" data-action="edit" title="编辑">✏️</button>
+            <button class="bb-amber-fact-btn" data-action="outdated" title="标记过时">⏳</button>
+            <button class="bb-amber-fact-btn" data-action="delete" title="删除">🗑️</button>
+          </div>
+        </div>
+        
+        <div class="bb-amber-fact-content">
+          ${esc(fact.content)}
+        </div>
+        
+        <div class="bb-amber-fact-meta">
+          <span class="bb-text-xs bb-text-dim">来源: ${esc(fact.source)}</span>
+          <span class="bb-text-xs bb-text-dim">更新: ${new Date(fact.lastUpdated).toLocaleString('zh-CN')}</span>
+          ${refCount}
+        </div>
+        
+        ${confidenceBar}
+        
+        ${tagsHtml ? `<div class="bb-amber-tags">${tagsHtml}</div>` : ''}
+        
+        ${fact.conflictWith.length > 0 ? `
+          <div class="bb-amber-conflict-notice">
+            ⚠️ 此事实与 ${fact.conflictWith.length} 条事实存在冲突
+            <button class="bb-sm-btn bb-btn-xs" data-action="resolve-conflict">🤖 AI解决</button>
+          </div>
+        ` : ''}
+      </div>
+    `);
+  });
+  
+  // 绑定事件
+  bindAmberFactCardEvents();
+}
+
+/**
+ * 渲染待确认事实
+ */
+function renderAmberPendingFacts() {
+  const $panel = $('#bb-amber-pending-panel');
+  const $list = $('#bb-amber-pending-list');
+  const $count = $('#bb-amber-pending-count');
+  
+  if (amberPendingFacts.length === 0) {
+    $panel.addClass('bb-hidden');
+    return;
+  }
+  
+  $panel.removeClass('bb-hidden');
+  $count.text(amberPendingFacts.length);
+  $list.empty();
+  
+  amberPendingFacts.forEach((fact, idx) => {
+    const cat = FACT_CATEGORIES[fact.category] || FACT_CATEGORIES.custom;
+    
+    $list.append(`
+      <div class="bb-amber-pending-card" data-pending-idx="${idx}">
+        <div class="bb-amber-pending-header">
+          <span style="color:${cat.color};">${cat.icon} ${cat.name}</span>
+          <span class="bb-text-xs bb-text-muted">置信度: ${(fact.confidence * 100).toFixed(0)}%</span>
+        </div>
+        <div class="bb-amber-pending-content">
+          ${esc(fact.content)}
+        </div>
+        <div class="bb-amber-pending-meta">
+          <span class="bb-text-xs bb-text-dim">来源: ${esc(fact.source)}</span>
+        </div>
+        <div class="bb-amber-pending-actions">
+          <button class="bb-sm-btn bb-btn-success bb-btn-xs" data-action="confirm">✅ 确认</button>
+          <button class="bb-sm-btn bb-btn-xs" data-action="edit">✏️ 编辑</button>
+          <button class="bb-sm-btn bb-btn-error bb-btn-xs" data-action="reject">❌ 拒绝</button>
+        </div>
+      </div>
+    `);
+  });
+  
+  // 绑定事件
+  bindAmberPendingEvents();
+}
+
+/**
+ * 更新统计信息
+ */
+function updateAmberStats() {
+  const facts = getAmberFacts();
+  
+  const total = facts.length;
+  const active = facts.filter(f => f.status === 'active').length;
+  const conflicted = facts.filter(f => f.status === 'conflicted').length;
+  const outdated = facts.filter(f => f.status === 'outdated').length;
+  
+  $('#bb-amber-stat-total').text(`总计: ${total}`);
+  $('#bb-amber-stat-active').text(`活跃: ${active}`);
+  $('#bb-amber-stat-conflicted').text(`冲突: ${conflicted}`);
+  $('#bb-amber-stat-outdated').text(`过时: ${outdated}`);
+}
+
+/**
+ * 刷新角色筛选下拉框
+ */
+function refreshAmberCharacterFilter() {
+  const $select = $('#bb-amber-filter-character');
+  const chatData = getChatData();
+  
+  if (!chatData.amber_facts) return;
+  
+  const characters = Object.keys(chatData.amber_facts);
+  
+  $select.empty();
+  $select.append('<option value="all">全部角色</option>');
+  
+  characters.forEach(char => {
+    $select.append(`<option value="${esc(char)}">${esc(char)}</option>`);
+  });
+  
+  // 默认选中当前角色
+  const cn = getCurrentCharacterName();
+  if (cn && characters.includes(cn)) {
+    $select.val(cn);
+  }
+}
+
+/**
+ * 刷新分类筛选下拉框
+ */
+function refreshAmberCategoryFilter() {
+  const $select = $('#bb-amber-filter-category');
+  
+  $select.empty();
+  $select.append('<option value="all">全部分类</option>');
+  
+  Object.entries(FACT_CATEGORIES).forEach(([key, val]) => {
+    $select.append(`<option value="${key}">${val.icon} ${val.name}</option>`);
+  });
+}
+
+// ────────────────────────────────────────────
+// U6. 事件绑定
+// ────────────────────────────────────────────
+
+/**
+ * 绑定记忆琥珀主面板事件
+ */
+function bindAmberPanelEvents() {
+  const panel = '#bb-main-panel';
+  
+  // 立即提取事实
+  $(panel).off('click.amberextract').on('click.amberextract', '#bb-amber-extract-now', () => {
+    extractFactsFromChat();
+  });
+  
+  // 手动添加事实
+  $(panel).off('click.amberadd').on('click.amberadd', '#bb-amber-add-manual', () => {
+    showAmberFactEditModal();
+  });
+  
+  // 导出
+  $(panel).off('click.amberexport').on('click.amberexport', '#bb-amber-export', () => {
+    exportAmberFacts();
+  });
+  
+  // 导入
+  $(panel).off('click.amberimport').on('click.amberimport', '#bb-amber-import', () => {
+    importAmberFacts();
+  });
+  
+  // 设置
+  $(panel).off('click.ambersettings').on('click.ambersettings', '#bb-amber-settings', () => {
+    toastr.info('请在插件设置中配置记忆琥珀');
+    // 可以跳转到settings页面
+  });
+  
+  // 筛选变化
+  $(panel).off('change.amberfilter').on('change.amberfilter', '#bb-amber-filter-character, #bb-amber-filter-category, #bb-amber-filter-status', () => {
+    renderAmberFacts();
+  });
+  
+  // 搜索
+  $(panel).off('input.ambersearch').on('input.ambersearch', '#bb-amber-search', debounce(() => {
+    renderAmberFacts();
+  }, 300));
+  
+  // 待确认面板 - 全部确认
+  $(panel).off('click.amberconfirmall').on('click.amberconfirmall', '#bb-amber-confirm-all', () => {
+    if (amberPendingFacts.length === 0) return;
+    
+    amberPendingFacts.forEach(fact => {
+      addAmberFact(fact);
+    });
+    
+    amberPendingFacts = [];
+    renderAmberPendingFacts();
+    
+    toastr.success('所有事实已确认');
+    
+    // 检测冲突
+    detectFactConflicts();
+  });
+  
+  // 待确认面板 - 全部拒绝
+  $(panel).off('click.amberrejectall').on('click.amberrejectall', '#bb-amber-reject-all', () => {
+    if (!confirm('确认拒绝所有待确认事实？')) return;
+    
+    amberPendingFacts = [];
+    renderAmberPendingFacts();
+    
+    toastr.info('已拒绝所有待确认事实');
+  });
+}
+
+/**
+ * 绑定事实卡片事件
+ */
+function bindAmberFactCardEvents() {
+  $('.bb-amber-fact-card').off('click.factaction').on('click.factaction', '.bb-amber-fact-btn', function() {
+    const action = $(this).data('action');
+    const factId = $(this).closest('.bb-amber-fact-card').data('fact-id');
+    
+    switch (action) {
+      case 'edit':
+        showAmberFactEditModal(factId);
+        break;
+      case 'outdated':
+        markAmberFactOutdated(factId);
+        break;
+      case 'delete':
+        if (confirm('确认删除此事实？')) {
+          deleteAmberFact(factId);
+        }
+        break;
+    }
+  });
+  
+  // 解决冲突
+  $('.bb-amber-fact-card').off('click.resolveconflict').on('click.resolveconflict', '[data-action="resolve-conflict"]', function() {
+    const factId = $(this).closest('.bb-amber-fact-card').data('fact-id');
+    const facts = getAmberFacts();
+    const fact = facts.find(f => f.id === factId);
+    
+    if (fact && fact.conflictWith.length > 0) {
+      // 简化：只解决第一个冲突
+      resolveFactConflictWithAI(factId, fact.conflictWith[0]);
+    }
+  });
+}
+
+/**
+ * 绑定待确认事实事件
+ */
+function bindAmberPendingEvents() {
+  $('.bb-amber-pending-card').off('click.pendingaction').on('click.pendingaction', '.bb-amber-pending-actions button', function() {
+    const action = $(this).data('action');
+    const idx = $(this).closest('.bb-amber-pending-card').data('pending-idx');
+    const fact = amberPendingFacts[idx];
+    
+    if (!fact) return;
+    
+    switch (action) {
+      case 'confirm':
+        addAmberFact(fact);
+        amberPendingFacts.splice(idx, 1);
+        renderAmberPendingFacts();
+        detectFactConflicts();
+        break;
+        
+      case 'edit':
+        showAmberPendingEditModal(idx);
+        break;
+        
+      case 'reject':
+        amberPendingFacts.splice(idx, 1);
+        renderAmberPendingFacts();
+        toastr.info('已拒绝该事实');
+        break;
+    }
+  });
+}
+
+// ────────────────────────────────────────────
+// U7. 模态框
+// ────────────────────────────────────────────
+
+/**
+ * 显示事实编辑模态框
+ */
+function showAmberFactEditModal(factId = null) {
+  const cn = getCurrentCharacterName();
+  if (!cn) {
+    toastr.warning('请先选择角色');
+    return;
+  }
+  
+  const isEdit = !!factId;
+  let fact = null;
+  
+  if (isEdit) {
+    const facts = getAmberFacts();
+    fact = facts.find(f => f.id === factId);
+    if (!fact) {
+      toastr.error('事实不存在');
+      return;
+    }
+  }
+  
+  // 分类选项
+  const categoryOptions = Object.entries(FACT_CATEGORIES)
+    .map(([key, val]) => `<option value="${key}" ${fact && fact.category === key ? 'selected' : ''}>${val.icon} ${val.name}</option>`)
+    .join('');
+  
+  const modalHtml = `
+    <div class="bb-modal-overlay" id="bb-amber-edit-modal">
+      <div class="bb-modal-content" style="max-width:600px;">
+        <div class="bb-modal-header">
+          <h3>${isEdit ? '✏️ 编辑事实' : '➕ 添加事实'}</h3>
+          <button class="bb-modal-close">✖</button>
+        </div>
+        <div class="bb-modal-body">
+          <div class="bb-form-group">
+            <label>分类</label>
+            <select id="bb-amber-edit-category" class="bb-input">
+              ${categoryOptions}
+            </select>
+          </div>
+          
+          <div class="bb-form-group">
+            <label>事实内容 *</label>
+            <textarea id="bb-amber-edit-content" class="bb-input" rows="4" placeholder="输入事实内容...">${fact ? esc(fact.content) : ''}</textarea>
+          </div>
+          
+          <div class="bb-form-group">
+            <label>置信度 (0-1)</label>
+            <input type="number" id="bb-amber-edit-confidence" class="bb-input" min="0" max="1" step="0.1" value="${fact ? fact.confidence : 0.8}">
+          </div>
+          
+          <div class="bb-form-group">
+            <label>来源</label>
+            <input type="text" id="bb-amber-edit-source" class="bb-input" placeholder="例如：第3章对话" value="${fact ? esc(fact.source) : '手动添加'}">
+          </div>
+          
+          <div class="bb-form-group">
+            <label>标签（逗号分隔）</label>
+            <input type="text" id="bb-amber-edit-tags" class="bb-input" placeholder="例如：重要,核心" value="${fact ? fact.tags.join(', ') : ''}">
+          </div>
+        </div>
+        <div class="bb-modal-footer">
+          <button class="bb-btn bb-btn-secondary" id="bb-amber-edit-cancel">取消</button>
+          <button class="bb-btn bb-btn-primary" id="bb-amber-edit-save">${isEdit ? '保存' : '添加'}</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  $('body').append(modalHtml);
+  
+  // 绑定事件
+  $('#bb-amber-edit-modal .bb-modal-close, #bb-amber-edit-cancel').on('click', () => {
+    $('#bb-amber-edit-modal').remove();
+  });
+  
+  $('#bb-amber-edit-save').on('click', () => {
+    const content = $('#bb-amber-edit-content').val().trim();
+    if (!content) {
+      toastr.warning('请输入事实内容');
+      return;
+    }
+    
+    const factData = {
+      category: $('#bb-amber-edit-category').val(),
+      content: content,
+      confidence: parseFloat($('#bb-amber-edit-confidence').val()) || 0.8,
+      source: $('#bb-amber-edit-source').val().trim() || '手动添加',
+      tags: $('#bb-amber-edit-tags').val().split(',').map(t => t.trim()).filter(Boolean),
+    };
+    
+    if (isEdit) {
+      updateAmberFact(factId, factData);
+      toastr.success('事实已更新');
+    } else {
+      addAmberFact(factData);
+      toastr.success('事实已添加');
+    }
+    
+    $('#bb-amber-edit-modal').remove();
+    detectFactConflicts();
+  });
+}
+
+/**
+ * 显示待确认事实编辑模态框
+ */
+function showAmberPendingEditModal(idx) {
+  const fact = amberPendingFacts[idx];
+  if (!fact) return;
+  
+  // 复用编辑模态框逻辑，但保存时更新待确认列表
+  const categoryOptions = Object.entries(FACT_CATEGORIES)
+    .map(([key, val]) => `<option value="${key}" ${fact.category === key ? 'selected' : ''}>${val.icon} ${val.name}</option>`)
+    .join('');
+  
+  const modalHtml = `
+    <div class="bb-modal-overlay" id="bb-amber-pending-edit-modal">
+      <div class="bb-modal-content" style="max-width:600px;">
+        <div class="bb-modal-header">
+          <h3>✏️ 编辑待确认事实</h3>
+          <button class="bb-modal-close">✖</button>
+        </div>
+        <div class="bb-modal-body">
+          <div class="bb-form-group">
+            <label>分类</label>
+            <select id="bb-amber-pending-edit-category" class="bb-input">
+              ${categoryOptions}
+            </select>
+          </div>
+          
+          <div class="bb-form-group">
+            <label>事实内容 *</label>
+            <textarea id="bb-amber-pending-edit-content" class="bb-input" rows="4">${esc(fact.content)}</textarea>
+          </div>
+          
+          <div class="bb-form-group">
+            <label>置信度 (0-1)</label>
+            <input type="number" id="bb-amber-pending-edit-confidence" class="bb-input" min="0" max="1" step="0.1" value="${fact.confidence}">
+          </div>
+        </div>
+        <div class="bb-modal-footer">
+          <button class="bb-btn bb-btn-secondary" id="bb-amber-pending-edit-cancel">取消</button>
+          <button class="bb-btn bb-btn-primary" id="bb-amber-pending-edit-save">保存</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  $('body').append(modalHtml);
+  
+  $('#bb-amber-pending-edit-modal .bb-modal-close, #bb-amber-pending-edit-cancel').on('click', () => {
+    $('#bb-amber-pending-edit-modal').remove();
+  });
+  
+  $('#bb-amber-pending-edit-save').on('click', () => {
+    const content = $('#bb-amber-pending-edit-content').val().trim();
+    if (!content) {
+      toastr.warning('请输入事实内容');
+      return;
+    }
+    
+    amberPendingFacts[idx].category = $('#bb-amber-pending-edit-category').val();
+    amberPendingFacts[idx].content = content;
+    amberPendingFacts[idx].confidence = parseFloat($('#bb-amber-pending-edit-confidence').val()) || 0.8;
+    
+    renderAmberPendingFacts();
+    $('#bb-amber-pending-edit-modal').remove();
+    toastr.success('已更新');
+  });
+}
+
+/**
+ * 显示冲突解决模态框
+ */
+function showConflictResolutionModal(fact1, fact2, analysis) {
+  const modalHtml = `
+    <div class="bb-modal-overlay" id="bb-amber-conflict-modal">
+      <div class="bb-modal-content" style="max-width:700px;">
+        <div class="bb-modal-header">
+          <h3>🤖 AI冲突分析</h3>
+          <button class="bb-modal-close">✖</button>
+        </div>
+        <div class="bb-modal-body">
+          <div class="bb-amber-conflict-comparison">
+            <div class="bb-amber-conflict-fact">
+              <h4>事实 1</h4>
+              <p>${esc(fact1.content)}</p>
+              <span class="bb-text-xs bb-text-dim">来源: ${esc(fact1.source)} | ${new Date(fact1.timestamp).toLocaleString('zh-CN')}</span>
+            </div>
+            
+            <div class="bb-amber-conflict-vs">VS</div>
+            
+            <div class="bb-amber-conflict-fact">
+              <h4>事实 2</h4>
+              <p>${esc(fact2.content)}</p>
+              <span class="bb-text-xs bb-text-dim">来源: ${esc(fact2.source)} | ${new Date(fact2.timestamp).toLocaleString('zh-CN')}</span>
+            </div>
+          </div>
+          
+          <div class="bb-amber-conflict-analysis">
+            <h4>AI分析结果</h4>
+            <p><strong>是否冲突：</strong> ${analysis.is_conflict ? '是' : '否'}</p>
+            <p><strong>建议操作：</strong> ${analysis.recommended_action}</p>
+            <p><strong>原因：</strong> ${esc(analysis.reason)}</p>
+            ${analysis.merged_content ? `<p><strong>合并内容：</strong> ${esc(analysis.merged_content)}</p>` : ''}
+          </div>
+        </div>
+        <div class="bb-modal-footer">
+          <button class="bb-btn bb-btn-secondary" data-action="cancel">取消</button>
+          <button class="bb-btn" data-action="keep1">保留事实1</button>
+          <button class="bb-btn" data-action="keep2">保留事实2</button>
+          ${analysis.merged_content ? '<button class="bb-btn bb-btn-primary" data-action="merge">使用合并内容</button>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  $('body').append(modalHtml);
+  
+  $('#bb-amber-conflict-modal .bb-modal-close, [data-action="cancel"]').on('click', () => {
+    $('#bb-amber-conflict-modal').remove();
+  });
+  
+  $('#bb-amber-conflict-modal [data-action]').on('click', function() {
+    const action = $(this).data('action');
+    
+    switch (action) {
+      case 'keep1':
+        markAmberFactOutdated(fact2.id);
+        updateAmberFact(fact1.id, { status: 'active', conflictWith: [] });
+        toastr.success('已保留事实1');
+        break;
+        
+      case 'keep2':
+        markAmberFactOutdated(fact1.id);
+        updateAmberFact(fact2.id, { status: 'active', conflictWith: [] });
+        toastr.success('已保留事实2');
+        break;
+        
+      case 'merge':
+        if (analysis.merged_content) {
+          updateAmberFact(fact1.id, { 
+            content: analysis.merged_content, 
+            status: 'active', 
+            conflictWith: [],
+            lastUpdated: new Date().toISOString(),
+          });
+          deleteAmberFact(fact2.id);
+          toastr.success('已合并事实');
+        }
+        break;
+    }
+    
+    $('#bb-amber-conflict-modal').remove();
+  });
+}
+
+// ────────────────────────────────────────────
+// U8. 导出/导入
+// ────────────────────────────────────────────
+
+/**
+ * 导出事实
+ */
+function exportAmberFacts() {
+  const cn = getCurrentCharacterName();
+  if (!cn) {
+    toastr.warning('请先选择角色');
+    return;
+  }
+  
+  const facts = getAmberFacts();
+  
+  if (facts.length === 0) {
+    toastr.warning('暂无事实可导出');
+    return;
+  }
+  
+  const s = extension_settings[EXTENSION_NAME];
+  const format = s.memory_amber.export_format;
+  
+  if (format === 'json') {
+    const json = JSON.stringify(facts, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `amber_facts_${cn}_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toastr.success('已导出JSON文件');
+  } else {
+    // Markdown格式
+    let md = `# 记忆琥珀 - ${cn}\n\n`;
+    md += `导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
+    
+    Object.entries(FACT_CATEGORIES).forEach(([key, val]) => {
+      const catFacts = facts.filter(f => f.category === key);
+      if (catFacts.length === 0) return;
+      
+      md += `## ${val.icon} ${val.name}\n\n`;
+      catFacts.forEach(f => {
+        md += `- **${f.content}**\n`;
+        md += `  - 置信度: ${(f.confidence * 100).toFixed(0)}%\n`;
+        md += `  - 来源: ${f.source}\n`;
+        md += `  - 更新: ${new Date(f.lastUpdated).toLocaleString('zh-CN')}\n`;
+        if (f.tags.length > 0) md += `  - 标签: ${f.tags.join(', ')}\n`;
+        md += `\n`;
+      });
+    });
+    
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `amber_facts_${cn}_${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toastr.success('已导出Markdown文件');
+  }
+}
+
+/**
+ * 导入事实
+ */
+function importAmberFacts() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target.result);
+        
+        if (!Array.isArray(imported)) {
+          toastr.error('文件格式错误');
+          return;
+        }
+        
+        const cn = getCurrentCharacterName();
+        if (!cn) {
+          toastr.warning('请先选择角色');
+          return;
+        }
+        
+        // 合并导入
+        const existing = getAmberFacts();
+        const merged = [...existing, ...imported];
+        
+        saveAmberFacts(merged);
+        toastr.success(`已导入 ${imported.length} 条事实`);
+        
+        detectFactConflicts();
+        
+      } catch (err) {
+        console.error('[记忆琥珀] 导入失败:', err);
+        toastr.error('导入失败：文件格式错误');
+      }
+    };
+    
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+//────────────────────────────────────────────
+// U9.宏注入系统
+// ────────────────────────────────────────────
+
+/**
+ * 生成 {{bb_facts}} 宏内容
+ *按优先级排序，输出最重要的事实摘要
+ */
+function generateFactsMacro(characterName = null, options = {}) {
+  const cn = characterName || getCurrentCharacterName();
+  if (!cn) return '';
+  
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.memory_amber.enabled) return '';
+  
+  const maxFacts = options.limit || 20;
+  const category = options.category || null;
+  
+  let facts = getSortedAmberFacts(cn, maxFacts);
+  
+  // 只取活跃状态的事实
+  facts = facts.filter(f => f.status === 'active');
+  
+  // 按分类筛选
+  if (category) {
+    facts = facts.filter(f => f.category === category);
+  }
+  
+  if (facts.length === 0) return '';
+  
+  // 按分类分组输出
+  const grouped = {};
+  facts.forEach(f => {
+    const cat = FACT_CATEGORIES[f.category] || FACT_CATEGORIES.custom;
+    if (!grouped[f.category]) {
+      grouped[f.category] = { name: cat.name, icon: cat.icon, items: [] };
+    }
+    grouped[f.category].items.push(f.content);
+  });
+  
+  let output = `[关于${cn}的已知事实]\n`;
+  
+  Object.values(grouped).forEach(group => {
+    output += `${group.icon} ${group.name}:\n`;
+    group.items.forEach(item => {
+      output += `  - ${item}\n`;
+    });
+  });
+  
+  return output.trim();
+}
+
+/**
+ * 注册宏到SillyTavern
+ *支持:
+ *   {{bb_facts}}                — 当前角色全部事实
+ *   {{bb_facts:角色名}}           — 指定角色事实
+ *   {{bb_facts:category:xxx}}     — 指定分类事实
+ */
+function registerAmberMacros() {
+  try {
+    const context = getContext();
+    
+    if (typeof context.registerMacro === 'function') {
+      // ST 原生宏注册（如果支持）
+      context.registerMacro('bb_facts', (args) => {
+        if (!args || args.length === 0) {
+          return generateFactsMacro();
+        }
+        
+        const arg = args[0];
+        
+        // {{bb_facts:category:xxx}}
+        if (arg.startsWith('category:')) {
+          const cat = arg.replace('category:', '');
+          return generateFactsMacro(null, { category: cat });
+        }
+        
+        // {{bb_facts:角色名}}
+        return generateFactsMacro(arg);
+      });
+    }
+    
+    // 备用方案：通过消息预处理注入
+    if (eventSource) {
+      eventSource.on('chat_message_sent', (data) => {
+        if (!data || !data.message) return;
+        
+        // 替换 {{bb_facts}} 宏
+        if (data.message.includes('{{bb_facts}}')) {
+          data.message = data.message.replace(/\{\{bb_facts\}\}/g, generateFactsMacro());
+        }
+        
+        // 替换 {{bb_facts:xxx}} 宏
+        const macroRegex = /\{\{bb_facts:([^}]+)\}\}/g;
+        let match;
+        while ((match = macroRegex.exec(data.message)) !== null) {
+          const arg = match[1];
+          let replacement = '';
+          
+          if (arg.startsWith('category:')) {
+            replacement = generateFactsMacro(null, { category: arg.replace('category:', '') });
+          } else {
+            replacement = generateFactsMacro(arg);
+          }
+          
+          data.message = data.message.replace(match[0], replacement);
+        }
+      });
+    }
+    
+    console.log('[记忆琥珀] 宏注册完成');
+    
+  } catch (err) {
+    console.warn('[记忆琥珀] 宏注册失败（不影响核心功能）:', err);
+  }
+}
+
+// ────────────────────────────────────────────
+// U10. 引用追踪
+// ────────────────────────────────────────────
+
+/**
+ * 扫描新消息，检查是否引用了已知事实
+ * 在每条新消息到达时调用
+ */
+function trackFactReferences(messageText) {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.memory_amber.enabled) return;
+  
+  const cn = getCurrentCharacterName();
+  if (!cn) return;
+  
+  const facts = getAmberFacts();
+  if (facts.length === 0) return;
+  
+  const textLower = messageText.toLowerCase();
+  let updated = false;
+  
+  facts.forEach(fact => {
+    if (fact.status !== 'active') return;
+    
+    // 提取事实中的关键词（取前3个实词，长度>=2）
+    const keywords = extractKeywords(fact.content);
+    
+    // 如果消息中包含多个关键词，视为引用
+    const matchCount = keywords.filter(kw => textLower.includes(kw.toLowerCase())).length;
+    
+    if (matchCount >= Math.min(2, keywords.length)) {
+      fact.references = (fact.references || 0) + 1;
+      fact.lastUpdated = new Date().toISOString();
+      updated = true;
+    }
+  });
+  
+  if (updated) {
+    saveAmberFacts(facts);
+  }
+}
+
+/**
+ * 从文本中提取关键词
+ */
+function extractKeywords(text) {
+    // 移除标点符号
+  const cleaned = text.replace(/[，。！？、；：""''（）【】《》\-—…,.!?;:'"()\[\]{}<>]/g, ' ');
+  
+  // 分词（简单版：按空格和常见分隔符拆分）
+  const words = cleaned.split(/\s+/).filter(w => w.length >= 2);
+  
+  // 过滤停用词
+  const stopWords = new Set([
+    '的', '了', '是', '在', '有', '和', '与', '或', '但', '而', '也', '都', '就',
+    '会', '能', '可以', '这', '那', '他', '她', '它', '我', '你', '们', '着', '过',
+    '被', '把', '给', '让', '向', '从', '到', '对', '于', '以', '为', '因', '所',
+    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+    'should', 'may', 'might', 'can', 'shall', 'to', 'of', 'in', 'for',
+    'on', 'with', 'at', 'by', 'from', 'as', 'into', 'about', 'like',
+    'and', 'or', 'but', 'not', 'no', 'if', 'then', 'so', 'than',
+    'that', 'this', 'it', 'he', 'she', 'they', 'we', 'you', 'i',]);
+  
+  return words.filter(w => !stopWords.has(w.toLowerCase())).slice(0, 5);
+}
+
+// ────────────────────────────────────────────
+// U11. 自动提取钩子
+// ────────────────────────────────────────────
+
+/**
+ * 将事实提取挂钩到消息计数器
+ * 每N条消息自动触发一次提取
+ */
+function hookFactExtractionToMessageCounter() {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.memory_amber.enabled || !s.memory_amber.auto_extract) return;
+  
+  if (eventSource) {
+    eventSource.on(event_types.MESSAGE_RECEIVED, (data) => {
+      amberMessageCounter++;
+      
+      // 引用追踪
+      if (data && data.message) {
+        trackFactReferences(data.message);
+      }
+      
+      // 达到触发阈值
+      if (amberMessageCounter >= s.memory_amber.extract_interval) {
+        amberMessageCounter = 0;
+        // 延迟执行，避免阻塞
+        setTimeout(() => {
+          extractFactsFromChat().then(() => {
+            // 自动确认模式
+            if (s.memory_amber.auto_confirm && amberPendingFacts.length > 0) {
+              amberPendingFacts.forEach(fact => addAmberFact(fact));
+              amberPendingFacts = [];
+              renderAmberPendingFacts();
+              detectFactConflicts();
+            }
+          });
+        }, 2000);
+      }
+    });
+    console.log(`[记忆琥珀] 自动提取已启用，每 ${s.memory_amber.extract_interval} 条消息触发`);
+  }
+}
+
+// ────────────────────────────────────────────
+// U12. 与预设联动— callSubAPI扩展
+// ────────────────────────────────────────────
+
+/**
+ * 在callSubAPI 的prompt 中自动注入事实上下文
+ * 需要在 callSubAPI 函数中调用此函数
+ */
+function injectAmberContext(prompt) {
+  const s = extension_settings[EXTENSION_NAME];
+  if (!s.memory_amber.enabled) return prompt;
+  
+  const factsMacro = generateFactsMacro();
+  if (!factsMacro) return prompt;
+  
+  // 在 prompt 末尾注入事实上下文
+  return prompt + '\n\n' + factsMacro;
+}
+
+// ────────────────────────────────────────────
+// U13. 初始化
+// ────────────────────────────────────────────
+
+/**
+ * 初始化记忆琥珀系统
+ */
+function initMemoryAmber() {
+  const s = extension_settings[EXTENSION_NAME];
+  
+  if (!s.memory_amber) {
+    s.memory_amber = {
+      enabled: true,
+      auto_extract: true,
+      extract_interval: 15,
+      auto_confirm: false,
+      max_facts_per_character: 100,
+      priority_algorithm: 'weighted',
+      show_confidence: true,
+      show_references: true,
+      conflict_detection: true,
+      conflict_threshold: 0.7,
+      multi_character: true,
+      export_format: 'json',};
+    saveSettingsDebounced();
+  }
+  
+  //刷新筛选器
+  refreshAmberCharacterFilter();
+  refreshAmberCategoryFilter();
+  
+  // 渲染
+  renderAmberFacts();
+  updateAmberStats();
+  
+  // 绑定事件
+  bindAmberPanelEvents();
+  
+  // 注册宏
+  registerAmberMacros();
+  
+  // 挂钩自动提取
+  if (s.memory_amber.enabled && s.memory_amber.auto_extract) {
+    hookFactExtractionToMessageCounter();
+  }
+  
+  console.log('[骨与血] 记忆琥珀系统初始化完成');
+}
+
+// ═══════════════════════════════════════════
+// 【区块U 结束】
+// ═══════════════════════════════════════════
 
 
 
