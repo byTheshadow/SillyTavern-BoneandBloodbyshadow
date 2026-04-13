@@ -1953,6 +1953,8 @@ async function generateDiary() {
     pluginData.diary_blood.push({ date: new Date().toLocaleString('zh-CN'), content: result, character: cn });
     saveChatData(); renderDiary();
     toastr.success(`📖 ${cn} 的日记已更新！`);
+    bbNotify('diary', `${cn} 的日记已更新`, result.substring(0, 100));
+    playNotificationSound('success');
     checkAchievements();
   }
 }
@@ -1966,6 +1968,9 @@ async function generateSummary() {
   if (result) {
     pluginData.summaries.push({ date: new Date().toLocaleString('zh-CN'), content: result });
     saveChatData(); toastr.success('📜 阿卡夏记录已更新！');
+    bbNotify('summary', '阿卡夏记录已更新', result.substring(0, 100));
+    playNotificationSound('success');
+
   }
 }
 function renderSummary() {
