@@ -1522,7 +1522,7 @@ function buildMainPanelHTML() {
       </div>
 
 
-           <div id="bb-pane-diary" class="bb-tab-pane bb-hidden">
+        <div id="bb-pane-diary" class="bb-tab-pane bb-hidden">
         <!-- 自动总结状态栏 -->
         <div class="bb-auto-summary-bar" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bb-bg-secondary);border:1px solid var(--bb-border-light);border-radius:var(--bb-radius-md);margin-bottom:12px;font-size:12px;">
           <div>
@@ -1533,10 +1533,8 @@ function buildMainPanelHTML() {
           </div>
           <button class="bb-sm-btn bb-btn-xs" id="bb-btn-toggle-auto" title="开关自动记录">${getSettings().auto_diary_enabled ? '⏸暂停' : '▶ 开启'}</button>
         </div>
-        
-             <!--📖 日记（含子Tab：日记/总结/编年史） -->
-      <div id="bb-pane-diary" class="bb-tab-pane bb-hidden">
-        
+      <!--📖 日记（含子Tab：日记/总结/编年史） -->
+
         <!-- 子Tab导航 -->
         <div class="bb-sub-tab-bar">
           <button class="bb-sub-tab-btn bb-sub-tab-active" data-subtab="diary-main">📖 日记</button>
