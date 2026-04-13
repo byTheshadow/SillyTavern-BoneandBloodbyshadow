@@ -310,6 +310,24 @@ const DEFAULT_SETTINGS = {
     multi_character: true,           // 多角色支持
     export_format: 'json',           // 'json' | 'markdown'
   },
+    // 日历系统设置
+  calendar: {
+    enabled: true,
+    mode: 'real',                // 'real' | 'rp'
+    template_id: 'gregorian',        // 当前使用的模板ID
+    custom_templates: [],            // 用户自定义模板
+    default_view: 'month',           // 'month' | 'week' | 'day'
+    show_holidays: true,
+    show_solar_terms: true,          // 显示节气（仅公历）
+    show_seasons: true,
+    show_aggregation: true,          // 每日聚合显示
+    holiday_auto_inject: true,       // 节日自动注入上下文
+    season_auto_inject: true,        // 季节自动注入上下文
+    custom_holidays: [],             // 用户自定义纪念日
+    time_anchor: null,               // 时间锚点 { real_date, rp_date, rp_year }
+    rp_current_date: null,           // RP当前日期 { year, month, day }
+    week_start: 0,                   // 周起始日（0=周日，1=周一）
+  },
 
 };
 
