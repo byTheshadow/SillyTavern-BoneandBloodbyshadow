@@ -1485,26 +1485,73 @@ function buildMainPanelHTML() {
           <button class="bb-sm-btn bb-btn-xs" id="bb-btn-toggle-auto" title="开关自动记录">${getSettings().auto_diary_enabled ? '⏸暂停' : '▶ 开启'}</button>
         </div>
         
-        <!-- 日记区域 -->
-        <div class="bb-section">
-          <h4 class="bb-section-title">📖 日记</h4>
-          <div class="bb-action-bar">
-            <button class="bb-sm-btn" id="bb-btn-gen-diary-tab">📖 生成日记</button>
-            <button class="bb-sm-btn" id="bb-btn-gen-diary-img">🎨 为最新日记配图</button>
-          </div>
-          <div id="bb-diary-empty" class="bb-empty">暂无日记<br/>点击上方按钮生成</div>
-          <div id="bb-diary-list"></div>
-        </div>
+             <!--📖 日记（含子Tab：日记/总结/编年史） -->
+      <div id="bb-pane-diary" class="bb-tab-pane bb-hidden">
         
-        <!-- 总结区域 -->
-        <div class="bb-section" style="margin-top:16px;">
-          <h4 class="bb-section-title">📜 阿卡夏记录（总结）</h4>
+        <!-- 子Tab导航 -->
+        <div class="bb-sub-tab-bar">
+          <button class="bb-sub-tab-btn bb-sub-tab-active" data-subtab="diary-main">📖 日记</button>
+          <button class="bb-sub-tab-btn" data-subtab="diary-summary">📜 总结</button>
+          <button class="bb-sub-tab-btn" data-subtab="diary-chronicle">⭐ 编年史</button>
+        </div>
+
+        <!-- 子面板：日记 -->
+        <div id="bb-subtab-diary-main" class="bb-sub-tab-pane">
           <div class="bb-action-bar">
-            <button class="bb-sm-btn" id="bb-btn-gen-summary-tab">📜 生成总结</button>
-            <button class="bb-sm-btn bb-btn-danger" id="bb-btn-clear-summaries">🗑️ 清空总结</button>
+            <button class="bb-sm-btn bb-btn-primary" id="bb-btn-gen-diary-tab">📖 生成日记</button>
           </div>
-          <div id="bb-summary-empty" class="bb-empty">暂无总结<br/>每${getSettings().diary_trigger_count || 30}条消息自动生成，或手动点击生成</div>
-          <div id="bb-summary-list"></div>
+          <div id="bb-diary-box" class="bb-scroll-list">
+            <div class="bb-empty">暂无日记</div>
+          </div>
+        </div>
+
+        <!-- 子面板：总结 -->
+        <div id="bb-subtab-diary-summary" class="bb-sub-tab-pane bb-hidden">
+          <div class="bb-action-bar">
+            <button class="bb-sm-btn bb-btn-primary" id="bb-btn-gen-summary-tab">📜 生成总结</button>
+          </div>
+          <div id="bb-summary-box" class="bb-scroll-list">
+            <div class="bb-empty">暂无总结</div>
+          </div>
+        </div>
+
+        <!-- 子面板：编年史 -->
+        <div id="bb-subtab-diary-chronicle" class="bb-sub-tab-pane bb-hidden">
+          <div class="bb-action-bar bb-action-wrap">
+            <button class="bb-sm-btn bb-btn-primary" id="bb-chronicle-extract">🔍 从对话提取</button>
+            <button class="bb-sm-btn" id="bb-chronicle-add-manual">➕ 手动添加</button>
+            <button class="bb-sm-btn" id="bb-chronicle-from-diary">📖 从日记提取</button>
+            <button class="bb-sm-btn" id="bb-chronicle-export">💾 导出</button>
+          </div>
+
+          <!--筛选栏 -->
+          <div class="bb-chronicle-filter-bar">
+            <select id="bb-chronicle-filter-category" class="bb-input" style="flex:1;">
+              <option value="all">全部分类</option>
+            </select>
+            <select id="bb-chronicle-filter-importance" class="bb-input" style="flex:1;">
+              <option value="all">全部重要度</option>
+              <option value="5">★★★★★ 史诗</option>
+              <option value="4">★★★★☆ 关键</option>
+              <option value="3">★★★☆☆ 重要</option>
+              <option value="2">★★☆☆☆ 普通</option>
+              <option value="1">★☆☆☆☆琐事</option>
+            </select>
+            <input type="text" id="bb-chronicle-search" class="bb-input" placeholder="🔍 搜索事件..." style="flex:2;">
+          </div>
+
+          <!-- 统计 -->
+          <div class="bb-chronicle-stats">
+            <span id="bb-chronicle-stat-total">共 0 个事件</span>
+            <span id="bb-chronicle-stat-chapters">0 个章节</span>
+          </div>
+
+          <!-- 时间轴 -->
+          <div id="bb-chronicle-timeline" class="bb-chronicle-timeline">
+            <div class="bb-empty">暂无编年史事件 ⭐<br/>
+              点击"从对话提取"开始记录你的故事
+            </div>
+          </div>
         </div>
       </div>
 
